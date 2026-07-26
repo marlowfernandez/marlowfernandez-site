@@ -43,6 +43,10 @@ aidlc/.aidlc-clone-id
 aidlc/.aidlc-sessions/
 aidlc/spaces/*/intents/*/runtime-graph.json
 aidlc/spaces/*/intents/*/.aidlc-*
+# Upstream gap: hook-health markers land directly under intents/, one level
+# above the record dir, so the pattern above does not reach them. They are
+# machine-local and rewritten every session.
+aidlc/spaces/*/intents/.aidlc-*
 # Redacted diagnostic reports (/aidlc --doctor --export): regenerated, meant to
 # be shared then deleted — machine-local derived output, never shared truth.
 aidlc/diagnostics/
