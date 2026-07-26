@@ -34,7 +34,7 @@ Useful commands: `/aidlc --status` (progress), `/aidlc --stage <slug>` (jump),
 
 ### Local deviations from the shipped distribution
 
-The upstream `dist/claude/` distribution was copied in as-is, with three
+The upstream `dist/claude/` distribution was copied in as-is, with four
 deliberate changes. Anyone re-syncing from upstream needs to reapply them:
 
 1. **AWS Bedrock removed.** Upstream `.claude/settings.json` sets
@@ -51,7 +51,16 @@ deliberate changes. Anyone re-syncing from upstream needs to reapply them:
    performance validation). `mvp` resolves to 22 stages and drops the OPERATION
    phase — the right shape for a static personal site.
 
-3. **`.claude/CLAUDE.md`** prerequisites section updated to match the above.
+3. **`.mcp.json` deleted.** Upstream declares five MCP servers — `context7` plus
+   four AWS ones. This project prefers skills over MCP: documentation lookups
+   come from the `find-docs` skill and the `ctx7` CLI, which authenticates from
+   `~/.config/context7` and needs no `CONTEXT7_API_KEY` env var. The AWS servers
+   are moot without AWS. Verified safe to remove: the distribution contains zero
+   `mcp__*` tool references, and the composer's CodeKB path has a documented
+   `method: "fallback"` for when CodeKB is absent — which it always was, since
+   CodeKB is not declared in upstream's `.mcp.json` either.
+
+4. **`.claude/CLAUDE.md`** prerequisites section updated to match the above.
 
 ### Known sharp edges
 
@@ -59,10 +68,6 @@ deliberate changes. Anyone re-syncing from upstream needs to reapply them:
   arbitrary shell commands in this project without a prompt. This is upstream's
   design — it's what lets the 32-stage workflow run unattended. Narrow the
   `permissions.allow` list if you want per-call review back.
-- **`.mcp.json` declares five MCP servers**: `context7` (needs `CONTEXT7_API_KEY`
-  in the environment) and four AWS servers launched via `uvx` that authenticate
-  off the standard AWS credential chain. Servers you have no credentials for are
-  simply unavailable and never block a workflow.
 - **`aidlc/` artifacts are committed and this repo is public.** The audit trail,
   state files, and every stage artifact are version-controlled by design. Keep
   anything sensitive out of intent descriptions.
