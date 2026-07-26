@@ -34,7 +34,7 @@ Useful commands: `/aidlc --status` (progress), `/aidlc --stage <slug>` (jump),
 
 ### Local deviations from the shipped distribution
 
-The upstream `dist/claude/` distribution was copied in as-is, with four
+The upstream `dist/claude/` distribution was copied in as-is, with five
 deliberate changes. Anyone re-syncing from upstream needs to reapply them:
 
 1. **AWS Bedrock removed.** Upstream `.claude/settings.json` sets
@@ -60,14 +60,21 @@ deliberate changes. Anyone re-syncing from upstream needs to reapply them:
    `method: "fallback"` for when CodeKB is absent — which it always was, since
    CodeKB is not declared in upstream's `.mcp.json` either.
 
-4. **`.claude/CLAUDE.md`** prerequisites section updated to match the above.
+4. **Bare `Bash` pre-approval removed.** Upstream's `permissions.allow` includes
+   a bare `"Bash"`, auto-approving arbitrary shell commands with no prompt — it
+   is what lets the 32-stage workflow run unattended. That entry is gone. Only
+   AI-DLC's own tooling stays pre-approved, via two narrow patterns:
+   `Bash(bun "$CLAUDE_PROJECT_DIR/.claude/tools/"*)` (upstream's absolute form)
+   and `Bash(bun .claude/tools/*)` (added — the relative form the stage files
+   and docs actually invoke, which the absolute pattern does not match).
+
+5. **`.claude/CLAUDE.md`** prerequisites section updated to match the above.
 
 ### Known sharp edges
 
-- **`.claude/settings.json` pre-approves a bare `Bash`**, which auto-approves
-  arbitrary shell commands in this project without a prompt. This is upstream's
-  design — it's what lets the 32-stage workflow run unattended. Narrow the
-  `permissions.allow` list if you want per-call review back.
+- **Build and test commands will prompt for approval** during CONSTRUCTION, now
+  that blanket `Bash` is gone. That is the intended trade: per-call review in
+  exchange for the workflow no longer running shell unattended.
 - **`aidlc/` artifacts are committed and this repo is public.** The audit trail,
   state files, and every stage artifact are version-controlled by design. Keep
   anything sensitive out of intent descriptions.

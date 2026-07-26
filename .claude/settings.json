@@ -8,7 +8,7 @@
       "Edit",
       "Write",
       "Bash(bun \"$CLAUDE_PROJECT_DIR/.claude/tools/\"*)",
-      "Bash",
+      "Bash(bun .claude/tools/*)",
       "Glob",
       "Grep",
       "Task",
