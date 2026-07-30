@@ -60,3 +60,9 @@ aidlc/diagnostics/
 # which was proven to corrupt the multi-line audit blocks) ·
 # aidlc/spaces/*/intents/*/<phase>/<stage>/*.md (artifacts + diary).
 .claude/settings.local.json
+
+# Source resume PDF — content is confirmed public on the site itself
+# (requirements-analysis, 260726-resume-site), but the raw file was never a
+# decision point and doesn't need to be a permanent, scrapable download in
+# the public repo. Revisit if a PDF-download feature is decided later.
+/Marlow_Fernandez_Resume.pdf

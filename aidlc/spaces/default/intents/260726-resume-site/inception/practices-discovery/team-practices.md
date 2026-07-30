@@ -1,9 +1,13 @@
-# Team-Level Rules
+# Team Practices — marlowfernandez.com (AFFIRMED)
 
-> This team's affirmed practices and corrections. Loaded after `org.md` as
-> strict-additive guidance; contradictions with broader policy are rejected.
-> Populated by the practices-discovery affirmation gate. Edit at the gate,
-> not directly.
+**Intent:** `260726-resume-site` · **Stage:** practices-discovery · **Phase:** Inception
+**Status: FINAL — affirmed by the human at the practices-discovery interview**
+(`practices-discovery-questions.md`, Q1–Q11). These five sections are written
+into `aidlc/spaces/default/memory/team.md` as this project's team-level
+practice, strict-additive over `org.md`. This is a **solo-builder** project
+(one stakeholder, sole author, $0 budget); where `org.md`'s multi-person
+framing did not fit, the human resolved it directly rather than by default
+inheritance.
 
 ## Way of Working
 
@@ -111,14 +115,3 @@ there is no other stage that would otherwise pin this down —
 organization and content-model conventions for this project. This is
 recorded here so it is not assumed to have been covered when it structurally
 was not.
-## Forbidden
-
-<!-- Team-specific forbidden patterns -->
-
-## Mandated
-
-<!-- Team-specific mandates -->
-
-## Corrections
-
-<!-- Self-learning loop appends here. -->
