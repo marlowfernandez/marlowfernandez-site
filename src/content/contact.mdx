@@ -1,0 +1,21 @@
+---
+section: contact
+heading: Say hello
+contact:
+  email: marlowf@icloud.com
+  phone: 386-627-6447
+  linkedInUrl: https://linkedin.com/in/marlowf
+---
+
+This body is not rendered. `Header` and `ContactSection` both read the
+`contact` frontmatter above; the file's prose exists only as an authoring note.
+
+One object, two render sites — that is what keeps the header's contact row and
+the end-of-page call-to-action from drifting apart. `page.tsx` passes the same
+`contact.contact` value to both, and `ContactSection.test.tsx` asserts the two
+render identical values from a single source.
+
+The phone number is published as plain text rather than a `tel:` link, and is
+knowingly public: `requirements.md` Q1 confirms the display choice and its
+Assumptions section records that permanent public visibility on a public
+GitHub-hosted site was an explicit, informed decision.

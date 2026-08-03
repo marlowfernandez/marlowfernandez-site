@@ -1,0 +1,30 @@
+---
+section: ai-engineering
+heading: AI Engineering
+items:
+  - openclaw
+  - LLMs
+  - unsloth
+  - model setups
+  - AI-DLC
+---
+
+This body is not rendered. `AIEngineeringSection` renders the `items`
+frontmatter above, joined into one comma-separated sentence.
+
+The five items are the exact list ADR-1 settled (`decisions.md`, "AI Engineering
+Section Format"). Two constraints ride on this file and are easy to break by
+accident:
+
+- **No links, on any item — including this repository.** Linking was considered
+  and explicitly declined at Application Design Q6, because it would cross the
+  line `requirements.md` Q8 drew: no cross-reference to this site's own build
+  process. `AIEngineeringSection.test.tsx` asserts the rendered section contains
+  zero anchors, so the decision is guarded rather than merely documented.
+- **No card grid.** The tagged-grid presentation was Option A in ADR-1 and was
+  rejected: it implies each item has a linkable destination, which is not true
+  yet.
+
+On mobile this section appears above Experience; on tablet and desktop it sits
+in the right-hand column. That ordering is locked upstream, not a layout
+preference — see the note in `src/app/page.tsx`.

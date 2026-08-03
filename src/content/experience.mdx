@@ -1,0 +1,178 @@
+---
+section: experience
+heading: Experience
+roles:
+  - employer: Point & Pay
+    title: >-
+      Team Lead II, Software Engineer (previously Senior Software Engineer,
+      April 2022 – 2024)
+    startDate: 2022-04
+    endDate: null
+    bullets:
+      - >-
+        Lead a development team managing payment processing infrastructure
+        supporting over $50 million in annual ACH and card transactions.
+      - >-
+        Established an AI governance framework and engineering best practices.
+        Led cross-team discussions to develop a Code of Conduct for responsible
+        AI tool usage, including security protocols, data privacy guidelines,
+        and ethical standards for AI-assisted development. Also implemented and
+        demonstrated the benefits of the AI-DLC methodology.
+      - >-
+        Architected and delivered a NACHA-compliant file generation system,
+        reducing processing time and eliminating manual intervention for
+        thousands of daily transactions
+      - >-
+        Implemented a security-first architecture and trained the team on PCI
+        DSS compliance requirements, resulting in successful audit
+        certification. Experienced in PCI audit preparation and presentation.
+      - >-
+        Resolved critical production issues with the EPX payment provider that
+        affected credit and debit card processing, recovering significant
+        revenue per transaction. Led efforts to revamp the entire debit card
+        processing system.
+      - >-
+        Serve as the technical escalation point for critical production
+        incidents, diagnosing and resolving complex system failures through
+        rapid code analysis, real-time debugging, and log forensics. Minimize
+        downtime and ensure system reliability during high-stakes scenarios.
+      - >-
+        Lead a team of four developers and three QA members, conducting code
+        reviews and establishing engineering best practices.
+      - >-
+        Increased team productivity by implementing sprint tracking, backlog,
+        and sprint planning, and points-per-sprint analysis.
+      - >-
+        Established fraud detection protocols in response to coordinated
+        cyberattacks, preventing thousands of fraudulent transactions and
+        securing customer data
+      - >-
+        Led an enterprise-wide code refactoring initiative to resolve financial
+        precision issues by migrating from floating-point arithmetic to
+        BigDecimal and Money objects across payment processing systems.
+        Eliminated rounding errors and scientific notation defects to support
+        high-value transaction formats.
+      - >-
+        Championed QA infrastructure modernization by developing a
+        comprehensive business case using the 5 W’s framework. Secured
+        stakeholder buy-in to implement end-to-end SSIS/SSRS reporting in the
+        QA environment, enabling early detection of reporting and transaction
+        defects previously only found in production and significantly reducing
+        post-deployment incidents.
+      - >-
+        Led enterprise CI/CD transformation from Bamboo to Jenkins, then to a
+        modern GitLab pipeline architecture with Infrastructure as Code.
+        Integrated SonarQube for automated code quality analysis and security
+        scanning.
+      - >-
+        Championed the hiring of the organization’s first dedicated DevOps
+        engineer, providing technical mentorship and establishing best
+        practices that reduced deployment cycles and improved code quality
+        metrics across all teams.
+      - >-
+        Designed and implemented a complete ledger accounting system using
+        double-entry accounting practices, Micronaut, and Postgres. Delivered
+        the project under high pressure within two months, compared to the
+        initial six-month timeline for system creation and Salesforce
+        integration.
+      - >-
+        Managed AWS infrastructure including EC2 provisioning and automated
+        backups, IAM-based access controls, VPC security group configuration
+        for inbound/outbound traffic, and CloudTrail auditing to support
+        security and compliance forensics.
+    subLine: Also builds AI-engineering side projects under Vynkor.
+  - employer: HII Technical Solutions
+    title: Software Design Engineer (Secret Clearance)
+    startDate: 2019-11
+    endDate: 2022-04
+    bullets:
+      - >-
+        Led enterprise software migration from legacy systems to Java Spring
+        Boot microservices architecture for Department of Defense (Navy)
+        clients
+      - >-
+        Directed on-site training program for naval base operators at SCTTR and
+        TTGP, ensuring successful adoption of mission-critical communication
+        systems. Became a go-to contact for software questions.
+      - >-
+        Architected a security framework using Spring Security ACL, protecting
+        classified entities with role-based access control across distributed
+        systems
+      - >-
+        Orchestrated database upgrade from Postgres 9.6 to 13 with zero
+        downtime for production systems, including custom migration of Serial
+        to Identity types
+      - >-
+        Implemented containerization strategy using Docker/Docker-compose,
+        reducing deployment time and improving environment consistency
+      - >-
+        Designed and delivered VoIP services integration with Cisco IP Phones
+        using XML/JAXB, enabling secure communications for naval operations
+      - >-
+        Established local Trust-CA certificate infrastructure for Postgres 13,
+        ensuring secure client/server communications in a classified
+        environment
+      - >-
+        Collaborated with cross-functional teams using Agile/Scrum methodology.
+        RHEL 7.9 Linux development environment
+  - employer: Syzygy Integration (Department of Homeland Security Contract)
+    title: Associate Software Engineer
+    startDate: 2019-01
+    endDate: 2019-04
+    bullets:
+      - >-
+        Designed and implemented an Android mobile application for DHS field
+        operations, delivering initial software architecture and feature set
+      - >-
+        Modernized legacy codebase for compatibility with current Gradle and
+        Android SDK versions, extending application lifecycle by 3+ years
+      - >-
+        Built React/Redux web applications for homeland security field
+        operations, implementing centralized Redux state management for
+        predictable data flow across multi-step operational workflows.
+      - >-
+        Created comprehensive software setup documentation, enabling faster
+        onboarding for future development teams
+  - employer: Palm Coast Data
+    title: Internet Programmer & Programmer/Data Analyst
+    startDate: 2016-07
+    endDate: 2019-01
+    bullets:
+      - >-
+        Re-architected backend/frontend systems for the BASS Pro fishing
+        tournament platform, increasing client revenue through streamlined
+        operations
+      - >-
+        Led project planning and documentation initiatives, improving team
+        coordination and delivery timelines
+      - >-
+        Automated reporting processes with custom .EXE programs (VB.NET) and
+        PL/SQL stored procedures, saving many hours per week for account
+        managers
+      - >-
+        Optimized Oracle database performance through strategic query
+        optimization and procedure refinement
+      - >-
+        Established version control best practices using SVN, reducing code
+        conflicts and improving team velocity
+---
+
+This body is not rendered. `ExperienceSection` renders the `roles` frontmatter
+above; the file's prose exists only as an authoring note.
+
+Content here is governed by `requirements.md` (Experience Section), not by the
+resume PDF directly — every disclosure decision above was made per-item and
+re-confirmed at that stage's Q9. Do not add, paraphrase, or "improve" a bullet
+without going back to that document.
+
+Two things in particular:
+
+- **`subLine` is the Vynkor line.** It must stay "very brief and small, without
+  details, as vague as possible" (`scope-document.md`, carried verbatim through
+  `requirements.md`). The reason is reputational — avoiding the impression that
+  a side project competes with full-time employment. No automated check can
+  catch an expanded version of it; a longer line passes CI cleanly.
+- **Point & Pay is one employer entry, not two.** The Senior Software Engineer
+  → Team Lead II progression is a title change within one continuous tenure
+  (`requirements.md` reconciles the Q5 miscount explicitly), so the progression
+  rides in `title` while `startDate`/`endDate` describe the whole tenure.

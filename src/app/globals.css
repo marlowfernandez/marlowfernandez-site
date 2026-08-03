@@ -1,0 +1,199 @@
+@import 'tailwindcss';
+
+/*
+ * ---------------------------------------------------------------------------
+ * Theming mechanism
+ * ---------------------------------------------------------------------------
+ *
+ * Three layers, in cascade order:
+ *
+ *   1. `:root`                       -> light theme (the no-JS, no-preference
+ *                                       default).
+ *   2. `@media (prefers-color-scheme: dark)` on `:root:not([data-theme='light'])`
+ *                                    -> OS preference wins when the visitor
+ *                                       has expressed no explicit override.
+ *   3. `:root[data-theme='...']`     -> explicit override, set by the
+ *                                       pre-hydration script in `layout.tsx`
+ *                                       and by `ThemeToggle`.
+ *
+ * Layers 2 and 3 have identical specificity (0,2,0), so layer 3 MUST stay
+ * below layer 2 in this file. Reordering them silently breaks the
+ * "override beats OS preference" rule from `interaction-spec.md`.
+ *
+ * With JavaScript disabled the attribute is never set, so layer 2 governs and
+ * the site still honours the OS preference. Nothing about the page depends on
+ * the toggle existing.
+ */
+
+/*
+ * The `dark:` variant mirrors the same two-branch structure as the tokens
+ * above, and for the same reason.
+ *
+ * An attribute-only variant — `&:where([data-theme='dark'], [data-theme='dark'] *)`
+ * on its own — is wrong here, because `data-theme` is set exclusively by
+ * JavaScript (the pre-hydration script and `ThemeToggle`). With JS disabled and
+ * an OS dark preference the tokens above would go dark while every `dark:`
+ * utility stayed in its light state. That is exactly how `ThemeToggle`'s icon
+ * got stuck on the sun over a dark page.
+ *
+ * Branch 1 — explicit attribute. Branch 2 — OS preference, suppressed whenever
+ * an explicit `[data-theme='light']` override is present. Together they give
+ * the same precedence as the tokens: explicit beats OS in both directions, and
+ * the OS preference governs when no override exists.
+ *
+ * Branch order between the two is irrelevant (they never both match with
+ * conflicting results), but `:where()` on both is load-bearing — it keeps
+ * specificity at (0,1,0), identical to the unprefixed utility, so Tailwind's
+ * own variants-after-base ordering is what decides `block` vs `dark:hidden`.
+ */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(:not([data-theme='light'], [data-theme='light'] *)) {
+      @slot;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+
+  /* Colour tokens — values verbatim from `design-system-mapping.md`. */
+  --token-background: #ffffff;
+  --token-surface: #f7f7f8;
+  --token-text-primary: #14161a;
+  --token-text-secondary: #5a5f6b;
+  --token-accent: #2452e8;
+  --token-border: #e2e3e6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --token-background: #0f1115;
+    --token-surface: #1a1d23;
+    --token-text-primary: #e8e9ec;
+    --token-text-secondary: #9aa0ac;
+    --token-accent: #5b7fff;
+    --token-border: #2a2e37;
+  }
+}
+
+/* Explicit override. Must remain after the media block — see the note above. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --token-background: #0f1115;
+  --token-surface: #1a1d23;
+  --token-text-primary: #e8e9ec;
+  --token-text-secondary: #9aa0ac;
+  --token-accent: #5b7fff;
+  --token-border: #2a2e37;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Tailwind theme
+ * ---------------------------------------------------------------------------
+ *
+ * `inline` matters: it makes the generated utilities emit
+ * `color: var(--token-text-primary)` rather than resolving the value at build
+ * time. That is what lets a single set of utility classes follow the theme
+ * switch with no `dark:` variant on every element.
+ *
+ * Token names are kept verbatim from `design-system-mapping.md` for
+ * traceability, which is why the utility reads `text-text-primary` rather
+ * than something shorter.
+ */
+@theme inline {
+  --color-background: var(--token-background);
+  --color-surface: var(--token-surface);
+  --color-text-primary: var(--token-text-primary);
+  --color-text-secondary: var(--token-text-secondary);
+  --color-accent: var(--token-accent);
+  --color-border: var(--token-border);
+
+  /* Type scale. */
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.15;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.3;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-meta: 0.875rem;
+  --text-meta--line-height: 1.5;
+
+  /* Spacing scale. */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 4rem;
+
+  /*
+   * Breakpoints. Tailwind's stock sm/md/lg/xl/2xl are cleared so the only
+   * responsive variants available are the three confirmed at
+   * `refined-mockups` Q3 — mobile is the unprefixed base (<768px).
+   */
+  --breakpoint-*: initial;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+
+  /*
+   * System font stack, no webfont. Chosen at `refined-mockups` specifically to
+   * avoid a font-loading flash; it also removes a render-blocking request,
+   * which the Performance >=90 budget depends on.
+   */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+@layer base {
+  html {
+    /* Keeps in-page anchors (the skip link) from landing under the header. */
+    scroll-padding-top: var(--spacing-md);
+  }
+
+  body {
+    background-color: var(--token-background);
+    color: var(--token-text-primary);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+   * Visible focus indicator on every focusable element — the page-wide half of
+   * `accessibility-checklist.md`'s keyboard requirement. `performance-requirements.md`
+   * records that nothing in CI asserts this outside the toggle, so it is
+   * implemented once, globally, rather than per component.
+   *
+   * The accent token holds 3:1 against both theme backgrounds; the white/dark
+   * offset ring keeps it visible when the element sits on the surface colour.
+   */
+  :focus-visible {
+    outline: 2px solid var(--token-accent);
+    outline-offset: 2px;
+    border-radius: 0.125rem;
+  }
+
+  /*
+   * Links do not rely on colour alone — the underline carries the same
+   * information, per `accessibility-checklist.md`'s "no information by colour
+   * alone" item, which explicitly names visited-vs-unvisited links.
+   */
+  a {
+    color: var(--token-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+}

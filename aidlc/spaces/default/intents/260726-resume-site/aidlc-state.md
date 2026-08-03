@@ -6,7 +6,7 @@
 - **Scope**: personal-static-site
 - **Start Date**: 2026-07-26T16:22:20Z
 - **State Version**: 7
-- **Active Agent**: aidlc-architect-agent
+- **Active Agent**: aidlc-quality-agent
 - **Worktree Path**:
 - **Bolt Refs**:
 - **Practices Affirmed Timestamp**: 2026-07-27T23:01:46Z
@@ -25,14 +25,13 @@
 
 ## Execution Plan Summary
 - **Total Stages**: 19
-- **Completed**: 13
-- **In Progress**: nfr-requirements
+- **Completed**: 15
+- **In Progress**: build-and-test
 
 ## Runtime State
-- **Revision Count**: 1
+- **Revision Count**: 2
 
-- **Parked**: 2026-07-29T22:53:15Z
-- **Parked At Stage**: nfr-requirements
+- **Skeleton Stance**: scope-dependent
 ## Phase Progress
 <!-- Status values: Pending, Active, Verified, Skipped -->
 
@@ -72,11 +71,11 @@
 ### CONSTRUCTION PHASE
 Per unit: [TBD]
 - [ ] functional-design — SKIP
-- [-] nfr-requirements — EXECUTE
+- [x] nfr-requirements — EXECUTE
 - [ ] nfr-design — SKIP
 - [ ] infrastructure-design — SKIP
-- [ ] code-generation — EXECUTE
-- [ ] build-and-test — EXECUTE
+- [x] code-generation — EXECUTE
+- [-] build-and-test — EXECUTE
 - [ ] ci-pipeline — EXECUTE
 
 ### OPERATION PHASE
@@ -90,12 +89,12 @@ Per unit: [TBD]
 
 ## Current Status
 - **Lifecycle Phase**: CONSTRUCTION
-- **Current Stage**: nfr-requirements
-- **Next Stage**: code-generation
+- **Current Stage**: build-and-test
+- **Next Stage**: ci-pipeline
 - **Status**: Running
-- **Last Updated**: 2026-07-29T22:53:15Z
+- **Last Updated**: 2026-08-03T02:15:00Z
 
 ## Session Resume Point
-- **Last Completed Stage**: units-generation
-- **Next Action**: Execute NFR Requirements
+- **Last Completed Stage**: code-generation
+- **Next Action**: Execute Build and Test
 - **Pending Artifacts**: none
