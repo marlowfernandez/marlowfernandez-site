@@ -120,6 +120,12 @@ export function ExperienceSection({
             key={`${role.employer}|${role.startDate}`}
             data-testid="role"
             data-accent={resolveAccent(role, index)}
+            /*
+             * Revealed per scene rather than per section, so employers arrive
+             * one at a time as the reader scrolls through the history. The
+             * attribute is inert without JavaScript — see `RevealController`.
+             */
+            data-reveal=""
             className="scene relative"
           >
             {/* Decorative: the accent wash behind this employer's scene. */}

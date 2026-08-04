@@ -716,4 +716,41 @@
       scroll-behavior: auto;
     }
   }
+
+  /*
+   * -------------------------------------------------------------------------
+   * Scroll reveals
+   * -------------------------------------------------------------------------
+   *
+   * Gated on `html[data-js='on']`, which the pre-paint script in
+   * `theme-script.ts` sets before the first frame. Without that gate, a
+   * visitor with JavaScript disabled — or one whose bundle failed — would get
+   * a permanently blank page, and Lighthouse would measure LCP against an
+   * element at opacity 0.
+   *
+   * Only `opacity` and `transform` animate. Neither affects layout, so CLS is
+   * structurally zero rather than merely small. Never add height, margin,
+   * padding, or `display` to this transition.
+   */
+  html[data-js='on'] [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    transition:
+      opacity 0.55s ease,
+      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  html[data-js='on'] [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-js='on'] [data-reveal],
+    html[data-js='on'] [data-reveal].is-revealed {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
 }

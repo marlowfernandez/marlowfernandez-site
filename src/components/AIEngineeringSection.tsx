@@ -43,6 +43,7 @@ export function AIEngineeringSection({
       id="ai-engineering"
       aria-labelledby="ai-engineering-heading"
       data-testid="section-ai-engineering"
+      data-reveal=""
       {...(className === undefined ? {} : { className })}
     >
       <h2

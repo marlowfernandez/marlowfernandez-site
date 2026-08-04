@@ -5,6 +5,7 @@ import { ExperienceSection } from '@/components/ExperienceSection';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
+import { RevealController } from '@/components/RevealController';
 import { aiEngineering, contact, education, experience, hero } from '@/content';
 
 /**
@@ -48,6 +49,11 @@ export default function HomePage() {
         // grid; `flex-1` keeps the footer at the bottom on short pages.
         className="canvas flex-1"
       >
+        {/*
+          Hero carries no `data-reveal`: it is the LCP element, and starting it
+          at opacity 0 would both delay that measurement and risk showing an
+          empty first screen.
+        */}
         <Hero name={hero.name} tagline={hero.tagline} />
 
         <div className="mx-auto w-full max-w-5xl px-gutter">
@@ -80,6 +86,13 @@ export default function HomePage() {
           />
         </div>
       </main>
+
+      {/*
+        One observer for every `[data-reveal]` on the page. Renders nothing;
+        every other component stays a server component and opts in with the
+        attribute alone.
+      */}
+      <RevealController />
 
       <Footer />
     </>

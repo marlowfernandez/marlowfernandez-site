@@ -27,6 +27,7 @@ export function EducationSection({
       id="education"
       aria-labelledby="education-heading"
       data-testid="section-education"
+      data-reveal=""
       {...(className === undefined ? {} : { className })}
     >
       <h2

@@ -44,6 +44,7 @@ export function ContactSection({
       id="contact"
       aria-labelledby="contact-heading"
       data-testid="section-contact"
+      data-reveal=""
       {...(className === undefined ? {} : { className })}
     >
       <h2

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { THEME_INIT_SCRIPT } from './theme-script';
+import {
+  JS_ATTRIBUTE,
+  REVEAL_FAILSAFE_MS,
+  REVEAL_READY_FLAG,
+  THEME_INIT_SCRIPT,
+} from './theme-script';
 import {
   THEME_ATTRIBUTE,
   THEME_STORAGE_KEY,
@@ -216,6 +221,7 @@ describe('THEME_INIT_SCRIPT (pre-hydration)', () => {
    */
   function runInitScript() {
     document.documentElement.removeAttribute(THEME_ATTRIBUTE);
+    document.documentElement.removeAttribute(JS_ATTRIBUTE);
     new Function(THEME_INIT_SCRIPT)();
   }
 
@@ -252,5 +258,63 @@ describe('THEME_INIT_SCRIPT (pre-hydration)', () => {
   it('references the same storage key and attribute as the module', () => {
     expect(THEME_INIT_SCRIPT).toContain(JSON.stringify(THEME_STORAGE_KEY));
     expect(THEME_INIT_SCRIPT).toContain(JSON.stringify(THEME_ATTRIBUTE));
+    expect(THEME_INIT_SCRIPT).toContain(JSON.stringify(JS_ATTRIBUTE));
+  });
+
+  it('marks that JavaScript ran, before resolving the theme', () => {
+    installWorkingStorage();
+    installMatchMedia(false);
+    runInitScript();
+    expect(document.documentElement.getAttribute(JS_ATTRIBUTE)).toBe('on');
+  });
+
+  it('disarms the reveals when the controller never mounts', async () => {
+    // The blank-page failure mode. The inline script always succeeds, so
+    // `data-js` gets set even if the React bundle never loads — and every
+    // `[data-reveal]` element would then sit at opacity 0 forever. This is
+    // the failsafe that un-hides them.
+    vi.useFakeTimers();
+    try {
+      installWorkingStorage();
+      installMatchMedia(false);
+      delete (window as unknown as Record<string, unknown>)[REVEAL_READY_FLAG];
+
+      runInitScript();
+      expect(document.documentElement.getAttribute(JS_ATTRIBUTE)).toBe('on');
+
+      vi.advanceTimersByTime(REVEAL_FAILSAFE_MS + 1);
+      expect(document.documentElement.getAttribute(JS_ATTRIBUTE)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('leaves the reveals armed once the controller reports in', async () => {
+    vi.useFakeTimers();
+    try {
+      installWorkingStorage();
+      installMatchMedia(false);
+      runInitScript();
+
+      // What `RevealController` does on mount.
+      (window as unknown as Record<string, boolean>)[REVEAL_READY_FLAG] = true;
+
+      vi.advanceTimersByTime(REVEAL_FAILSAFE_MS + 1);
+      expect(document.documentElement.getAttribute(JS_ATTRIBUTE)).toBe('on');
+    } finally {
+      vi.useRealTimers();
+      delete (window as unknown as Record<string, unknown>)[REVEAL_READY_FLAG];
+    }
+  });
+
+  it('still marks JavaScript as running when theme resolution fails', () => {
+    // The ordering constraint, asserted rather than left to a comment. Scroll
+    // reveals start at opacity 0 and are gated on this flag; if a storage or
+    // matchMedia failure could skip it, the page would render permanently
+    // blank instead of merely losing the theme override.
+    installThrowingStorage();
+    installMatchMedia(true);
+    expect(() => runInitScript()).not.toThrow();
+    expect(document.documentElement.getAttribute(JS_ATTRIBUTE)).toBe('on');
   });
 });
