@@ -53,45 +53,47 @@ export function ContactSection({
       data-testid="section-contact"
       data-reveal=""
       data-snap=""
-      {...(className === undefined ? {} : { className })}
+      className={className === undefined ? 'py-xl' : `py-xl ${className}`}
     >
-      <h2
-        id="contact-heading"
-        className="text-label font-extrabold text-text-tertiary uppercase"
-      >
-        {heading}
-      </h2>
+      <div className="shell">
+        <h2
+          id="contact-heading"
+          className="text-label font-extrabold text-text-tertiary uppercase"
+        >
+          {heading}
+        </h2>
 
-      <ul className="mt-xs flex flex-wrap items-center gap-x-sm text-body">
-        <li>
-          <a
-            href={`mailto:${contactInfo.email}`}
-            data-testid="contact-email"
-            className={ITEM_CLASS}
-          >
-            {contactInfo.email}
-          </a>
-        </li>
-
-        {contactInfo.phone === undefined ? null : (
+        <ul className="mt-xs flex flex-wrap items-center gap-x-sm text-body">
           <li>
-            <span
-              data-testid="contact-phone"
-              className={`${ITEM_CLASS} text-text-primary`}
+            <a
+              href={`mailto:${contactInfo.email}`}
+              data-testid="contact-email"
+              className={ITEM_CLASS}
             >
-              {contactInfo.phone}
-            </span>
+              {contactInfo.email}
+            </a>
           </li>
-        )}
 
-        <li>
-          <ExternalLink
-            href={contactInfo.linkedInUrl}
-            label="LinkedIn"
-            className={ITEM_CLASS}
-          />
-        </li>
-      </ul>
+          {contactInfo.phone === undefined ? null : (
+            <li>
+              <span
+                data-testid="contact-phone"
+                className={`${ITEM_CLASS} text-text-primary`}
+              >
+                {contactInfo.phone}
+              </span>
+            </li>
+          )}
+
+          <li>
+            <ExternalLink
+              href={contactInfo.linkedInUrl}
+              label="LinkedIn"
+              className={ITEM_CLASS}
+            />
+          </li>
+        </ul>
+      </div>
     </section>
   );
 }

@@ -98,7 +98,20 @@ export function SceneNav() {
             best = index;
             bestRatio = entry.intersectionRatio;
           }
-          if (best !== -1) setActive(best);
+          if (best === -1) return;
+          setActive(best);
+
+          /*
+           * Marks the document once the hero is no longer the active scene, so
+           * the header can carry a condensed copy of the name — a frozen row.
+           *
+           * An attribute on `<html>` rather than shared React state: `Header`
+           * is a server component, and the alternative is either lifting the
+           * whole header into a client island or threading a context through
+           * the page for one boolean. CSS reads the attribute directly.
+           */
+          document.documentElement.dataset['pastHero'] =
+            best > 0 ? 'true' : 'false';
         },
         { threshold: [0.25, 0.5, 0.75] },
       );

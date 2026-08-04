@@ -57,38 +57,44 @@ export default function HomePage() {
         */}
         <Hero name={hero.name} tagline={hero.tagline} />
 
-        <div className="mx-auto w-full max-w-[1800px] px-gutter">
-          <AIEngineeringSection
-            heading={aiEngineering.heading}
-            items={aiEngineering.items}
-            {...(aiEngineering.summary === undefined
-              ? {}
-              : { summary: aiEngineering.summary })}
-            className="py-xl"
-          />
+        {/*
+          No shared width container here, deliberately.
 
-          <ExperienceSection
-            heading={experience.heading}
-            roles={experience.roles}
-            className="py-xl"
-          />
+          Every section is full-bleed and owns a `.shell` wrapper for its own
+          content. Wrapping them all in one narrow container instead put each
+          scene's box at ~1265px, and since a scene clips its own decorative
+          layers, the glow was cut off with a hard rectangular edge against the
+          full-width background — visible as a box drawn around the content.
 
-          <EducationSection
-            heading={education.heading}
-            education={education.education}
-            className="py-xl"
-          />
+          Backgrounds must span the viewport; text must not. Those are two
+          different widths, so they are two different elements.
+        */}
+        <AIEngineeringSection
+          heading={aiEngineering.heading}
+          items={aiEngineering.items}
+          {...(aiEngineering.summary === undefined
+            ? {}
+            : { summary: aiEngineering.summary })}
+        />
 
-          {/*
-            Same `contact.contact` object the Header above received — one
-            source, two render sites, so the two copies cannot drift.
-          */}
-          <ContactSection
-            heading={contact.heading}
-            contactInfo={contact.contact}
-            className="py-xl"
-          />
-        </div>
+        <ExperienceSection
+          heading={experience.heading}
+          roles={experience.roles}
+        />
+
+        <EducationSection
+          heading={education.heading}
+          education={education.education}
+        />
+
+        {/*
+          Same `contact.contact` object the Header above received — one
+          source, two render sites, so the two copies cannot drift.
+        */}
+        <ContactSection
+          heading={contact.heading}
+          contactInfo={contact.contact}
+        />
       </main>
 
       {/*

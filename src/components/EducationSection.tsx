@@ -29,51 +29,53 @@ export function EducationSection({
       data-testid="section-education"
       data-reveal=""
       data-snap=""
-      {...(className === undefined ? {} : { className })}
+      className={className === undefined ? 'py-xl' : `py-xl ${className}`}
     >
-      <h2
-        id="education-heading"
-        className="text-label font-extrabold text-text-tertiary uppercase"
-      >
-        {heading}
-      </h2>
+      <div className="shell">
+        <h2
+          id="education-heading"
+          className="text-label font-extrabold text-text-tertiary uppercase"
+        >
+          {heading}
+        </h2>
 
-      {/*
+        {/*
         Unordered: degree and certification are two independent credentials, not
         a sequence — unlike Experience, where order carries meaning.
       */}
-      <ul className="mt-sm space-y-sm">
-        {education.map((entry) => (
-          <li
-            key={`${entry.institution}|${entry.credential}`}
-            data-testid="education-entry"
-          >
-            <h3
-              className="text-body font-semibold text-text-primary"
-              data-testid="education-credential"
+        <ul className="mt-sm space-y-sm">
+          {education.map((entry) => (
+            <li
+              key={`${entry.institution}|${entry.credential}`}
+              data-testid="education-entry"
             >
-              {entry.credential}
-            </h3>
-
-            <p className="text-meta text-text-secondary">
-              <span data-testid="education-institution">
-                {entry.institution}
-              </span>
-              {' · '}
-              <span data-testid="education-year">{entry.year}</span>
-            </p>
-
-            {entry.detail === undefined ? null : (
-              <p
-                data-testid="education-detail"
-                className="mt-xs text-meta text-text-secondary"
+              <h3
+                className="text-body font-semibold text-text-primary"
+                data-testid="education-credential"
               >
-                {entry.detail}
+                {entry.credential}
+              </h3>
+
+              <p className="text-meta text-text-secondary">
+                <span data-testid="education-institution">
+                  {entry.institution}
+                </span>
+                {' · '}
+                <span data-testid="education-year">{entry.year}</span>
               </p>
-            )}
-          </li>
-        ))}
-      </ul>
+
+              {entry.detail === undefined ? null : (
+                <p
+                  data-testid="education-detail"
+                  className="mt-xs text-meta text-text-secondary"
+                >
+                  {entry.detail}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

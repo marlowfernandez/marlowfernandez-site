@@ -104,14 +104,16 @@ export function ExperienceSection({
       id="experience"
       aria-labelledby="experience-heading"
       data-testid="section-experience"
-      {...(className === undefined ? {} : { className })}
+      className={className === undefined ? 'py-xl' : `py-xl ${className}`}
     >
-      <h2
-        id="experience-heading"
-        className="text-label font-extrabold text-text-tertiary uppercase"
-      >
-        {heading}
-      </h2>
+      <div className="shell">
+        <h2
+          id="experience-heading"
+          className="text-label font-extrabold text-text-tertiary uppercase"
+        >
+          {heading}
+        </h2>
+      </div>
 
       {/* Ordered: the list is reverse-chronological, so sequence carries meaning. */}
       {/*
@@ -141,7 +143,7 @@ export function ExperienceSection({
             {/* Decorative: the accent wash behind this employer's scene. */}
             <span aria-hidden="true" className="scene-glow" />
 
-            <div className="grid gap-lg desktop:grid-cols-[0.85fr_1.15fr] desktop:items-start">
+            <div className="shell grid gap-lg desktop:grid-cols-[0.85fr_1.15fr] desktop:items-start">
               {/*
                 Column one — who and when.
 

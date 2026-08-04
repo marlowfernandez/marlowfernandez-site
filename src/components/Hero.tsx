@@ -45,7 +45,7 @@ export function Hero({ name, tagline }: HeroProps) {
     <section
       data-testid="hero"
       data-snap=""
-      className="scene relative px-gutter pt-2xl pb-xl"
+      className="scene relative pt-2xl pb-xl"
       aria-labelledby="hero-name"
     >
       {/* Decorative: two drifting light sources behind the name. */}
@@ -59,7 +59,7 @@ export function Hero({ name, tagline }: HeroProps) {
         style={{ ['--accent' as string]: 'var(--token-accent-violet)' }}
       />
 
-      <div className="mx-auto w-full max-w-[1800px]">
+      <div className="shell">
         <p className="flex items-center gap-xs text-label font-extrabold text-text-tertiary uppercase">
           <span aria-hidden="true" className="availability-dot" />
           Software Engineering Leader

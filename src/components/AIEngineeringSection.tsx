@@ -48,16 +48,17 @@ export function AIEngineeringSection({
       data-testid="section-ai-engineering"
       data-reveal=""
       data-snap=""
-      {...(className === undefined ? {} : { className })}
+      className={className === undefined ? 'py-xl' : `py-xl ${className}`}
     >
-      <h2
-        id="ai-engineering-heading"
-        className="text-label font-extrabold text-text-tertiary uppercase"
-      >
-        {heading}
-      </h2>
+      <div className="shell">
+        <h2
+          id="ai-engineering-heading"
+          className="text-label font-extrabold text-text-tertiary uppercase"
+        >
+          {heading}
+        </h2>
 
-      {/*
+        {/*
         One text node, not a list and not a grid. `items.join` rather than a
         mapped fragment per item keeps it literally plain text — there is no
         per-item element for a future edit to hang a link or a chip on.
@@ -67,21 +68,22 @@ export function AIEngineeringSection({
         with type, never by wrapping items in elements — `ai-engineering-items`
         is asserted to have zero element children.
       */}
-      {summary === undefined ? null : (
-        <p
-          data-testid="ai-engineering-summary"
-          className="mt-sm max-w-[54ch] text-lede text-text-primary"
-        >
-          {summary}
-        </p>
-      )}
+        {summary === undefined ? null : (
+          <p
+            data-testid="ai-engineering-summary"
+            className="mt-sm max-w-[54ch] text-lede text-text-primary"
+          >
+            {summary}
+          </p>
+        )}
 
-      <p
-        data-testid="ai-engineering-items"
-        className="mt-md max-w-[70ch] text-body text-text-secondary"
-      >
-        {items.join(ITEM_SEPARATOR)}
-      </p>
+        <p
+          data-testid="ai-engineering-items"
+          className="mt-md max-w-[70ch] text-body text-text-secondary"
+        >
+          {items.join(ITEM_SEPARATOR)}
+        </p>
+      </div>
     </section>
   );
 }

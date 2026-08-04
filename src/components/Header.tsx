@@ -59,17 +59,39 @@ export function Header({ name, contactInfo }: HeaderProps) {
       className="glass sticky top-0 z-50 border-b border-hairline"
     >
       <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-x-sm gap-y-xs px-gutter py-xs">
-        <abbr
-          className="text-body font-extrabold tracking-tight text-text-primary no-underline"
-          data-testid="header-name"
-          title={name}
-        >
-          {initialsOf(name)}
-          {/* Decorative full stop in the accent, per the reference's monogram. */}
-          <span aria-hidden="true" className="text-accent-section">
-            .
+        <span className="flex items-baseline gap-xs">
+          <abbr
+            className="text-body font-extrabold tracking-tight text-text-primary no-underline"
+            data-testid="header-name"
+            title={name}
+          >
+            {initialsOf(name)}
+            {/* Decorative full stop in the accent, per the reference's monogram. */}
+            <span aria-hidden="true" className="text-accent-section">
+              .
+            </span>
+          </abbr>
+
+          {/*
+            The frozen row: a condensed copy of the hero's name, revealed only
+            once the hero has scrolled away. On the first scene it would simply
+            repeat the 109px heading a few hundred pixels below it.
+
+            `aria-hidden` because it is exactly that — a repeat. The name is
+            already the page's `h1` and is already on the abbreviation beside
+            it; announcing it a third time on every scroll would be noise.
+
+            Hidden by default and revealed by the attribute, so with JavaScript
+            unavailable it simply never appears rather than being stuck on.
+          */}
+          <span
+            aria-hidden="true"
+            data-testid="header-name-full"
+            className="header-name-full text-meta text-text-secondary"
+          >
+            {name}
           </span>
-        </abbr>
+        </span>
 
         <div className="flex flex-wrap items-center gap-x-sm gap-y-xs">
           <ContactItem

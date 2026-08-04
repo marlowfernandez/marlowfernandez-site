@@ -516,6 +516,21 @@
   }
 
   /*
+   * Content width, applied INSIDE a full-bleed scene.
+   *
+   * The two widths are deliberately separate elements. A scene clips its own
+   * decorative layers, so a scene constrained to content width clips its glow
+   * at that width too — which draws a hard rectangular edge across the
+   * full-width background. Backgrounds span the viewport; text does not.
+   */
+  .shell {
+    width: 100%;
+    max-width: 1800px;
+    margin-inline: auto;
+    padding-inline: var(--spacing-gutter);
+  }
+
+  /*
    * A scene is one full-width band. The ::after scrim is the most underrated
    * trick in the reference: it sits between the accent glow and the content,
    * darkening the side the copy lives on so text stays legible over colour and
@@ -524,7 +539,14 @@
   .scene {
     position: relative;
     isolation: isolate;
-    overflow: hidden;
+    /*
+     * `clip`, not `hidden`, and on one axis only. `overflow: hidden` forces
+     * both axes and would cut the glow at every scene boundary; `overflow-x:
+     * clip` leaves the vertical axis `visible`, so a glow bleeds softly into
+     * the neighbouring scene the way a light source should, while horizontal
+     * overflow still cannot produce a page scrollbar (WCAG 1.4.10).
+     */
+    overflow-x: clip;
   }
 
   .scene::after {
@@ -819,6 +841,35 @@
   @media (prefers-reduced-motion: reduce) {
     .slider-track {
       scroll-behavior: auto;
+    }
+  }
+
+  /*
+   * The frozen row. Hidden until `SceneNav` reports that the hero has scrolled
+   * away, then slides in beside the monogram.
+   *
+   * `max-width` rather than `display` so the transition can animate — a
+   * display change cannot be interpolated, and a width animation on a text
+   * node reads as the name sliding out from behind the monogram.
+   */
+  .header-name-full {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition:
+      max-width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.3s ease;
+  }
+
+  html[data-past-hero='true'] .header-name-full {
+    max-width: 22ch;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-name-full {
+      transition: none;
     }
   }
 
