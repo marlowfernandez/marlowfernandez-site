@@ -1,14 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MF">
-  <rect width="64" height="64" rx="13" fill="#2452e8" />
+  <!--
+    The header monogram, as a favicon: "MF" plus the accent full stop.
+
+    Square, not rounded. The redesign is radius-0 everywhere except circles,
+    and a rounded tile was the last thing still carrying the old styling.
+
+    Colours are literal rather than tokens — an SVG served as an icon gets no
+    stylesheet, so it cannot follow the theme. The accent-blue field is the one
+    choice that reads on both a light and a dark browser tab strip; a
+    near-black field matching the dark header would disappear into Chrome's
+    dark tab bar.
+
+    Strokes are heavier and the letterforms wider than the glyph would be at
+    display size. A favicon is rasterised at 16px, where hairlines disappear
+    into a grey smudge, so the shapes are drawn for that size rather than for
+    this viewBox.
+  -->
+  <rect width="64" height="64" fill="#2452e8" />
   <g
     fill="none"
     stroke="#ffffff"
-    stroke-width="5.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    stroke-width="7"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
   >
-    <path d="M11 46V18l10 22 10-22v28" />
-    <path d="M53 18H43v28" />
-    <path d="M43 31h9" />
+    <!-- M -->
+    <path d="M9 46V18l9.5 19L28 18v28" />
+    <!-- F -->
+    <path d="M55 18H40v28" />
+    <path d="M40 31h11" />
   </g>
+  <!-- The accent full stop, in the design's signature lime. -->
+  <rect x="52" y="40" width="7" height="7" fill="#c9ff4a" />
 </svg>
