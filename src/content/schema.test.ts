@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ACCENT_NAMES,
   ContentSchemaError,
+  MAX_SKILLS,
   assertValid,
+  resolveAccent,
   validateAIEngineeringFrontmatter,
   validateContactFrontmatter,
   validateEducationFrontmatter,
@@ -210,6 +213,124 @@ describe('malformed frontmatter fails', () => {
     });
     expect(result.ok).toBe(false);
     expect(result.ok ? 0 : result.issues.length).toBeGreaterThan(2);
+  });
+});
+
+/**
+ * Presentation fields added for the cinematic redesign.
+ *
+ * All optional, so every existing fixture above must keep passing untouched —
+ * that is itself the first assertion here.
+ */
+describe('presentation fields', () => {
+  /** Adds fields to the single role in the Experience fixture. */
+  function withRole(extra: Record<string, unknown>) {
+    const payload = clone(validExperience);
+    Object.assign(payload.roles[0] as Record<string, unknown>, extra);
+    return payload;
+  }
+
+  function experienceIssuePaths(payload: unknown) {
+    const result = validateExperienceFrontmatter(payload);
+    return result.ok ? [] : result.issues.map((issue) => issue.path);
+  }
+
+  it('leaves every presentation field undefined when absent', () => {
+    // The base fixture sets none of them. Absent must mean `undefined`, not an
+    // empty string or empty array, or `maybe()` would spread a falsy value
+    // onto the entry and defeat `exactOptionalPropertyTypes`.
+    const result = validateExperienceFrontmatter(clone(validExperience));
+    expect(result.ok).toBe(true);
+    const role = result.ok ? result.value.roles[0] : undefined;
+    expect(role?.accent).toBeUndefined();
+    expect(role?.metric).toBeUndefined();
+    expect(role?.metricLabel).toBeUndefined();
+    expect(role?.skills).toBeUndefined();
+  });
+
+  it('accepts every allowed accent name', () => {
+    for (const accent of ACCENT_NAMES) {
+      const result = validateExperienceFrontmatter(withRole({ accent }));
+      expect(result.ok, `accent "${accent}" should be valid`).toBe(true);
+      expect(result.ok && result.value.roles[0]?.accent).toBe(accent);
+    }
+  });
+
+  it('rejects an unknown accent and names the whole allowed set', () => {
+    const result = validateExperienceFrontmatter(withRole({ accent: 'red' }));
+    expect(result.ok).toBe(false);
+    const issue = result.ok ? undefined : result.issues[0];
+    expect(issue?.path).toBe('frontmatter.roles[0].accent');
+    // An author who mistyped should learn the alternatives from the message
+    // rather than having to open schema.ts.
+    for (const accent of ACCENT_NAMES) {
+      expect(issue?.message).toContain(accent);
+    }
+  });
+
+  it('requires metric and metricLabel to travel together', () => {
+    expect(experienceIssuePaths(withRole({ metric: '$50M+' }))).toEqual([
+      'frontmatter.roles[0].metricLabel',
+    ]);
+    expect(
+      experienceIssuePaths(withRole({ metricLabel: 'a caption' })),
+    ).toEqual(['frontmatter.roles[0].metric']);
+    expect(
+      validateExperienceFrontmatter(
+        withRole({ metric: '$50M+', metricLabel: 'a caption' }),
+      ).ok,
+    ).toBe(true);
+  });
+
+  it('reports one issue, not two, for a malformed metric', () => {
+    // A non-string `metric` fails its own check and yields undefined. The
+    // pairing rule must not then also fire, or the author sees a spurious
+    // "metricLabel is required" alongside the real error.
+    const paths = experienceIssuePaths(
+      withRole({ metric: 42, metricLabel: 'a caption' }),
+    );
+    expect(paths).toEqual(['frontmatter.roles[0].metric']);
+  });
+
+  it('validates skills as a bounded array of non-empty strings', () => {
+    expect(
+      validateExperienceFrontmatter(withRole({ skills: ['Payments', 'AWS'] }))
+        .ok,
+    ).toBe(true);
+
+    expect(experienceIssuePaths(withRole({ skills: 'Payments' }))).toEqual([
+      'frontmatter.roles[0].skills',
+    ]);
+
+    // An empty array is an authoring mistake, not a way to say "none".
+    expect(experienceIssuePaths(withRole({ skills: [] }))).toEqual([
+      'frontmatter.roles[0].skills',
+    ]);
+
+    expect(experienceIssuePaths(withRole({ skills: ['ok', ''] }))).toEqual([
+      'frontmatter.roles[0].skills[1]',
+    ]);
+
+    const overCap = Array.from({ length: MAX_SKILLS + 1 }, (_, i) => `s${i}`);
+    const capIssue = validateExperienceFrontmatter(
+      withRole({ skills: overCap }),
+    );
+    expect(capIssue.ok).toBe(false);
+    expect(capIssue.ok ? '' : capIssue.issues[0]?.message).toContain(
+      String(MAX_SKILLS),
+    );
+  });
+});
+
+describe('resolveAccent', () => {
+  it('prefers the authored accent', () => {
+    expect(resolveAccent({ accent: 'cyan' }, 0)).toBe('cyan');
+  });
+
+  it('falls back to a stable rotation by position', () => {
+    // Deterministic, so the same content always renders the same colours.
+    const rotated = [0, 1, 2, 3, 4].map((i) => resolveAccent({}, i));
+    expect(rotated).toEqual([...ACCENT_NAMES, ACCENT_NAMES[0]]);
   });
 });
 

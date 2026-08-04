@@ -25,6 +25,21 @@
 // Content entry types
 // ---------------------------------------------------------------------------
 
+/**
+ * Accent colours available to an Experience scene.
+ *
+ * Editorial rather than derived: Point & Pay is lime because lime is the
+ * design's primary accent, not because it happens to be first. Each name maps
+ * to a `--token-accent-*` pair in `globals.css` with separate light and dark
+ * values, so the choice survives a theme switch.
+ */
+export const ACCENT_NAMES = ['lime', 'violet', 'cyan', 'orange'] as const;
+
+export type AccentName = (typeof ACCENT_NAMES)[number];
+
+/** Upper bound on `skills`, so the chip row cannot wrap unboundedly. */
+export const MAX_SKILLS = 6;
+
 /** One employer block in the Experience section. */
 export interface ExperienceEntry {
   /** Employer name, e.g. "Point & Pay". */
@@ -42,6 +57,36 @@ export interface ExperienceEntry {
    * Unit 2 uses this for the Vynkor sub-line under Point & Pay.
    */
   subLine?: string;
+
+  // -------------------------------------------------------------------------
+  // Presentation fields, added for the cinematic redesign
+  // -------------------------------------------------------------------------
+  //
+  // All optional, deliberately. A required field would force every content
+  // entry to be edited before the components could land, and the redesign is
+  // sequenced so the site stays green at every step.
+  //
+  // Content-governance note, which matters more than the types: `metric` and
+  // `skills` must RE-PRESENT claims already approved at requirements-analysis,
+  // never introduce new ones. Invented resume copy passes every check in this
+  // file and every test in the suite — the schema cannot catch it, so the rule
+  // is written here where an author will read it.
+
+  /** Scene accent. Falls back to a stable per-index rotation when absent. */
+  accent?: AccentName;
+  /**
+   * The large figure in the impact card, e.g. `"$50M+"`. A display string, not
+   * a number — several plausible values are not numeric at all.
+   *
+   * Must be paired with `metricLabel`: an unlabelled large number is an
+   * accessibility problem, so the pairing is enforced below rather than left
+   * to review.
+   */
+  metric?: string;
+  /** The small caption naming what `metric` counts. Required when `metric` is set. */
+  metricLabel?: string;
+  /** Short uppercase chips. Index terms drawn from the bullets, not new claims. */
+  skills?: string[];
 }
 
 /** One credential in the Education & Certification section. */
@@ -237,6 +282,79 @@ class Checker {
     return out;
   }
 
+  /**
+   * An optional array whose every element is a non-empty string.
+   *
+   * An empty array fails rather than yielding `undefined`: `skills: []` is an
+   * authoring mistake, not a way of expressing "none". Omit the key instead.
+   */
+  optionalStringArray(
+    source: Record<string, unknown>,
+    key: string,
+    path: string,
+    maxLength?: number,
+  ): string[] | undefined {
+    const value = source[key];
+    if (value === undefined || value === null) return undefined;
+    if (!Array.isArray(value)) {
+      this.fail(
+        path,
+        `expected an array when present, received ${describe(value)}`,
+      );
+      return undefined;
+    }
+    if (value.length === 0) {
+      this.fail(path, 'expected at least one entry when present');
+      return undefined;
+    }
+    if (maxLength !== undefined && value.length > maxLength) {
+      this.fail(
+        path,
+        `expected at most ${maxLength} entries, received ${value.length}`,
+      );
+      return undefined;
+    }
+    const out: string[] = [];
+    value.forEach((entry, index) => {
+      if (typeof entry !== 'string' || entry.trim() === '') {
+        this.fail(`${path}[${index}]`, 'expected a non-empty string');
+        return;
+      }
+      out.push(entry);
+    });
+    return out;
+  }
+
+  /**
+   * An optional string constrained to a fixed set.
+   *
+   * The failure message names the whole allowed set, matching the habit of the
+   * validators above: an author who mistyped a value should not have to open
+   * this file to learn what the alternatives were.
+   */
+  oneOf<L extends string>(
+    source: Record<string, unknown>,
+    key: string,
+    path: string,
+    allowed: readonly L[],
+  ): L | undefined {
+    const value = source[key];
+    if (value === undefined || value === null) return undefined;
+    if (typeof value !== 'string') {
+      this.fail(
+        path,
+        `expected a string when present, received ${describe(value)}`,
+      );
+      return undefined;
+    }
+    if (!(allowed as readonly string[]).includes(value)) {
+      const list = allowed.map((entry) => `"${entry}"`).join(', ');
+      this.fail(path, `expected one of ${list}, received "${value}"`);
+      return undefined;
+    }
+    return value as L;
+  }
+
   literal<L extends string>(
     source: Record<string, unknown>,
     key: string,
@@ -303,6 +421,39 @@ function checkExperienceEntry(
     endDate = checker.yearMonth(entry, 'endDate', `${path}.endDate`);
   }
 
+  const metric = checker.optionalString(entry, 'metric', `${path}.metric`);
+  const metricLabel = checker.optionalString(
+    entry,
+    'metricLabel',
+    `${path}.metricLabel`,
+  );
+
+  // Cross-field rule. A large figure with no caption is meaningless to a
+  // screen reader and ambiguous to everyone else, and a caption with nothing
+  // to caption is dead markup. Enforced here so it cannot ship, rather than
+  // left to review — the pair is easy to half-edit.
+  //
+  // Keyed on raw PRESENCE, not on the validated results. `optionalString`
+  // returns `undefined` both when a key is absent and when it was present but
+  // malformed, so testing the results would report a spurious "metricLabel is
+  // required" alongside the real "metric must be a string" — two issues at one
+  // mistake, the second of them wrong.
+  const hasMetric = present(entry, 'metric');
+  const hasMetricLabel = present(entry, 'metricLabel');
+
+  if (hasMetric && !hasMetricLabel) {
+    checker.fail(
+      `${path}.metricLabel`,
+      'required when "metric" is set — an unlabelled figure has no accessible meaning',
+    );
+  }
+  if (hasMetricLabel && !hasMetric) {
+    checker.fail(
+      `${path}.metric`,
+      'required when "metricLabel" is set — the label has nothing to describe',
+    );
+  }
+
   return {
     employer: checker.string(entry, 'employer', `${path}.employer`),
     title: checker.string(entry, 'title', `${path}.title`),
@@ -312,6 +463,21 @@ function checkExperienceEntry(
     ...maybe(
       'subLine',
       checker.optionalString(entry, 'subLine', `${path}.subLine`),
+    ),
+    ...maybe(
+      'accent',
+      checker.oneOf(entry, 'accent', `${path}.accent`, ACCENT_NAMES),
+    ),
+    ...maybe('metric', metric),
+    ...maybe('metricLabel', metricLabel),
+    ...maybe(
+      'skills',
+      checker.optionalStringArray(
+        entry,
+        'skills',
+        `${path}.skills`,
+        MAX_SKILLS,
+      ),
     ),
   };
 }
@@ -382,6 +548,18 @@ function checkContactInfo(
     phone: checker.string(entry, 'phone', `${path}.phone`),
     linkedInUrl,
   };
+}
+
+/**
+ * Whether a key was authored at all, as distinct from whether it validated.
+ *
+ * `null` counts as absent, matching how `optionalString` and `endDate` already
+ * treat it — YAML writes an explicitly-blank key as `null`, and an author who
+ * writes `metric:` with no value means "no metric".
+ */
+function present(source: Record<string, unknown>, key: string): boolean {
+  const value = source[key];
+  return value !== undefined && value !== null;
 }
 
 /** Spreads an optional property only when it has a value (exactOptionalProperty-safe). */
@@ -485,6 +663,28 @@ export function validateContactFrontmatter(
     heading: checker.string(fm, 'heading', 'frontmatter.heading'),
     contact: checkContactInfo(checker, fm['contact'], 'frontmatter.contact'),
   });
+}
+
+// ---------------------------------------------------------------------------
+// Presentation helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * The accent a scene should use: the authored choice when there is one, else a
+ * stable rotation by position.
+ *
+ * The fallback exists so `accent` can stay optional — a role added without one
+ * still gets a colour, and it is deterministic rather than arbitrary, so the
+ * same content always renders the same way.
+ */
+export function resolveAccent(
+  entry: Pick<ExperienceEntry, 'accent'>,
+  index: number,
+): AccentName {
+  if (entry.accent !== undefined) return entry.accent;
+  // `index` is a array position, so it is always a non-negative integer; the
+  // modulo cannot land out of range.
+  return ACCENT_NAMES[index % ACCENT_NAMES.length] as AccentName;
 }
 
 // ---------------------------------------------------------------------------
