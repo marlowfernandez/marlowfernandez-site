@@ -549,4 +549,171 @@
     );
     backdrop-filter: blur(var(--depth-blur-sm));
   }
+
+  /*
+   * -------------------------------------------------------------------------
+   * Bullet slider
+   * -------------------------------------------------------------------------
+   *
+   * A native scroll container, not a transform carousel. Swipe, momentum,
+   * keyboard arrow scrolling, snap, and Ctrl+F scroll-into-view all come from
+   * the platform; JavaScript only adds the buttons. With JS off it degrades to
+   * a scrollable list rather than breaking.
+   */
+  .slider-track {
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Stops a horizontal swipe from triggering browser back-navigation. */
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /*
+     * Load-bearing, not tidiness: without it the grid below blows out its
+     * container and the PAGE gains a horizontal scrollbar — a WCAG 1.4.10
+     * Reflow failure that only shows up at 200% zoom.
+     */
+    min-width: 0;
+  }
+
+  .slider-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /*
+   * Column flow with a fixed row count lays bullets 1..N in the first column,
+   * N+1..2N in the second, and so on. Every item in a column shares an inline
+   * start, so snapping each one snaps the column. One flat <ol>, correct list
+   * semantics, no per-page wrapper elements.
+   */
+  .slider-pages {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    grid-template-rows: repeat(var(--slider-rows, 4), min-content);
+    column-gap: var(--spacing-md);
+    row-gap: var(--spacing-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .slider-bullet {
+    scroll-snap-align: start;
+    min-width: 0;
+    padding-inline-start: var(--spacing-sm);
+    position: relative;
+    color: var(--token-text-primary);
+  }
+
+  /* Marker drawn by hand: `list-style` cannot be positioned per column. */
+  .slider-bullet::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.7em;
+    width: 5px;
+    height: 1px;
+    background-color: var(--accent, var(--token-accent));
+  }
+
+  .slider-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    /*
+     * Height reserved whether or not the buttons render. They can only appear
+     * after measurement, i.e. post-hydration, and an unreserved row would
+     * shift everything below it — the one real CLS source in this component.
+     */
+    min-height: calc(var(--spacing-md) + var(--spacing-2xs));
+  }
+
+  .slider-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px touch target, matching the rest of the site's interactive controls. */
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    cursor: pointer;
+    border: 1px solid var(--token-hairline-strong);
+    color: var(--token-text-primary);
+    background-color: var(--token-lift);
+  }
+
+  .slider-button[aria-disabled='true'] {
+    /*
+     * `aria-disabled`, never the `disabled` attribute: a disabling button
+     * loses focus, stranding a reader who clicked through to the last page.
+     * The handler no-ops; this is the visual half.
+     */
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .slider-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+  }
+
+  .slider-dot {
+    cursor: pointer;
+    /* The tap target stays 44px; only the painted dot is small. */
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    background: none;
+    border: 0;
+    position: relative;
+  }
+
+  .slider-dot::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    translate: -50% -50%;
+    width: 6px;
+    height: 6px;
+    background-color: var(--token-text-tertiary);
+  }
+
+  .slider-dot[data-active='true']::after {
+    width: 18px;
+    background-color: var(--accent, var(--token-accent));
+  }
+
+  /*
+   * Below `tablet` the slider stands down entirely and the bullets render as a
+   * plain vertical list.
+   *
+   * A horizontal swipe inside a vertically-scrolling page is the most
+   * gesture-conflicted interaction on mobile, and fifteen dense bullets across
+   * eight narrow pages is worse to read than simply scrolling. The controls
+   * are hidden rather than unmounted so the markup stays identical across
+   * breakpoints and nothing depends on a JS width check.
+   */
+  @media (max-width: 767px) {
+    .slider-track {
+      overflow: visible;
+      scroll-snap-type: none;
+    }
+
+    .slider-pages {
+      display: block;
+    }
+
+    .slider-bullet {
+      margin-block-end: var(--spacing-xs);
+    }
+
+    .slider-controls {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slider-track {
+      scroll-behavior: auto;
+    }
+  }
 }
