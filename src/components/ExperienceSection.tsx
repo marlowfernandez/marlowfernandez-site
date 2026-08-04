@@ -114,7 +114,12 @@ export function ExperienceSection({
       </h2>
 
       {/* Ordered: the list is reverse-chronological, so sequence carries meaning. */}
-      <ol className="mt-lg space-y-2xl">
+      {/*
+        No vertical rhythm between roles: each one is its own viewport-height
+        snap target where snapping is active, and adding margin between them
+        would put dead space at every snap boundary.
+      */}
+      <ol className="mt-lg">
         {roles.map((role, index) => (
           <li
             key={`${role.employer}|${role.startDate}`}
@@ -126,6 +131,11 @@ export function ExperienceSection({
              * attribute is inert without JavaScript — see `RevealController`.
              */
             data-reveal=""
+            /*
+             * Each employer is its own snap target, which is the whole point:
+             * one gesture moves to the next company rather than three or four.
+             */
+            data-snap=""
             className="scene relative"
           >
             {/* Decorative: the accent wash behind this employer's scene. */}

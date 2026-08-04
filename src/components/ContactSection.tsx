@@ -52,6 +52,7 @@ export function ContactSection({
       aria-labelledby="contact-heading"
       data-testid="section-contact"
       data-reveal=""
+      data-snap=""
       {...(className === undefined ? {} : { className })}
     >
       <h2

@@ -44,6 +44,7 @@ export function Hero({ name, tagline }: HeroProps) {
   return (
     <section
       data-testid="hero"
+      data-snap=""
       className="scene relative px-gutter pt-2xl pb-xl"
       aria-labelledby="hero-name"
     >

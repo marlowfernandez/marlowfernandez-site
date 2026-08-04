@@ -750,6 +750,47 @@
 
   /*
    * -------------------------------------------------------------------------
+   * Scene snapping
+   * -------------------------------------------------------------------------
+   *
+   * One gesture moves to the next scene instead of three or four. Scroll is
+   * never hijacked: there is no wheel listener and no `preventDefault` — the
+   * browser's own snap points do the work, so find-in-page, the scrollbar,
+   * keyboard paging, and momentum all keep working.
+   *
+   * Deliberately gated, because unconditional snapping is a genuinely bad
+   * idea and was rejected earlier for two reasons this addresses directly:
+   *
+   *   - `(pointer: fine)` keeps it off touch devices entirely. That removes
+   *     the `100svh` objection at its root — mobile URL-bar collapse resizes
+   *     the viewport mid-scroll and would reflow every scene below.
+   *   - `(min-height: 760px)` keeps it off short windows, where a viewport-tall
+   *     scene cannot hold its own content and snapping fights the reader.
+   *
+   * `proximity`, not `mandatory`. Mandatory forces a landing on the nearest
+   * snap point even when the reader deliberately stopped between two — on a
+   * scene taller than its viewport that reads as the page yanking itself
+   * around. Proximity snaps when you are already close, which is exactly the
+   * "one scroll, next company" behaviour, and stays out of the way otherwise.
+   */
+  @media (min-height: 760px) and (pointer: fine) {
+    html {
+      scroll-snap-type: y proximity;
+    }
+
+    [data-snap] {
+      scroll-snap-align: start;
+      /* Clears the sticky header so a snapped heading is not tucked under it. */
+      scroll-margin-top: var(--spacing-md);
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
+
+  /*
+   * -------------------------------------------------------------------------
    * Scroll reveals
    * -------------------------------------------------------------------------
    *
