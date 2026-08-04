@@ -8,62 +8,65 @@ import { Hero } from '@/components/Hero';
 import { aiEngineering, contact, education, experience, hero } from '@/content';
 
 /**
- * The single page. Direction C — minimal, no navigation.
+ * The single page — full-width stacked scenes.
  *
- * Every component below is a server component; the only client-side JavaScript
- * on the page comes from `ThemeToggle` inside `Header`.
+ * Most components below are server components. `ThemeToggle` (in `Header`) and
+ * `BulletSlider` (in `ExperienceSection`) are the two client islands.
  *
- * ## Section order — the one layout rule that is not a preference
+ * ## Section order, and why the old two-column trick is gone
  *
- * `mockups.md` locks two different orderings:
- *   - mobile (<768px):  AI Engineering **before** Experience, single column.
- *   - tablet/desktop:   two columns, Experience **left**, AI Engineering right.
+ * `user-flow.md`'s Key Decision Point requires that AI Engineering be
+ * "reachable without requiring the visitor to first read the full Experience
+ * history." The previous layout satisfied that with a deliberate mismatch: AI
+ * Engineering first in the DOM, then `tablet:col-start-*` placing Experience
+ * back in column one visually.
  *
- * The mobile order is the load-bearing one — it traces to `user-flow.md`'s Key
- * Decision Point, that AI Engineering "must be reachable without requiring the
- * visitor to first read the full Experience history."
+ * That mismatch was safe only because neither section contained a focusable
+ * element, and the old doc comment said so explicitly — "introducing a link
+ * into either one would break it and requires revisiting this layout."
+ * `BulletSlider`'s paging controls are exactly that, so the trick is removed
+ * rather than patched around.
  *
- * So AI Engineering comes first in the DOM, which makes the mobile layout pure
- * document order with no CSS reordering at the most constrained viewport. From
- * `tablet:` up, explicit grid placement puts Experience back in column one.
+ * Now **DOM order is visual order at every width**, and AI Engineering simply
+ * comes second — right after the hero, before the Experience history. The
+ * requirement is met by document order alone, which is a stronger guarantee
+ * than the CSS swap it replaces, and WCAG 2.4.3 has nothing to trip over at
+ * any breakpoint.
  *
- * That does leave DOM order and visual order disagreeing on wide screens.
- * Deliberate, and safe here specifically because neither section contains a
- * focusable element — ADR-1 removed every link from AI Engineering, and
- * Experience is prose — so WCAG 2.4.3 (focus order) has nothing to trip over.
- * Unit 2 kept both sections link-free, so this still holds; introducing a link
- * into either one would break it and requires revisiting this layout.
- *
- * `page.test.tsx` asserts the DOM order and the grid-placement classes, since
- * this ordering was silently inverted once at an earlier stage.
+ * `page.test.tsx` asserts both halves: the order, and the absence of any
+ * reordering class that would reintroduce the mismatch.
  */
 export default function HomePage() {
   return (
     <>
       <Header name={hero.name} contactInfo={contact.contact} />
 
-      <main id="main-content" data-testid="main" className="flex-1">
+      <main
+        id="main-content"
+        data-testid="main"
+        // `canvas` supplies the layered background and the masked blueprint
+        // grid; `flex-1` keeps the footer at the bottom on short pages.
+        className="canvas flex-1"
+      >
         <Hero name={hero.name} tagline={hero.tagline} />
 
-        <div className="mx-auto w-full max-w-5xl px-sm py-md">
-          <div className="grid grid-cols-1 gap-lg tablet:grid-cols-2">
-            <AIEngineeringSection
-              heading={aiEngineering.heading}
-              items={aiEngineering.items}
-              className="tablet:col-start-2 tablet:row-start-1"
-            />
+        <div className="mx-auto w-full max-w-5xl px-gutter">
+          <AIEngineeringSection
+            heading={aiEngineering.heading}
+            items={aiEngineering.items}
+            className="py-xl"
+          />
 
-            <ExperienceSection
-              heading={experience.heading}
-              roles={experience.roles}
-              className="tablet:col-start-1 tablet:row-start-1"
-            />
-          </div>
+          <ExperienceSection
+            heading={experience.heading}
+            roles={experience.roles}
+            className="py-xl"
+          />
 
           <EducationSection
             heading={education.heading}
             education={education.education}
-            className="mt-lg"
+            className="py-xl"
           />
 
           {/*
@@ -73,7 +76,7 @@ export default function HomePage() {
           <ContactSection
             heading={contact.heading}
             contactInfo={contact.contact}
-            className="mt-lg"
+            className="py-xl"
           />
         </div>
       </main>

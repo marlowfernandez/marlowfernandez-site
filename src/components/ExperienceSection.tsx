@@ -1,10 +1,14 @@
-import type { ExperienceEntry } from '@/content/schema';
+import { BulletSlider } from '@/components/BulletSlider';
+import { resolveAccent, type ExperienceEntry } from '@/content/schema';
 
 /**
  * The Experience section: every employer block, at full detail.
  *
- * Server component — no `'use client'`. `ThemeToggle` remains the only client
- * component on the page (`components.md`, Component Boundaries).
+ * Server component itself, but it now renders `BulletSlider`, which is a
+ * client component. `ThemeToggle` is therefore no longer the only one on the
+ * page — an invariant several doc comments used to assert, corrected where it
+ * appeared. The bundle cost is one small component and is measured against the
+ * Performance budget rather than assumed.
  *
  * Content comes from `src/content/experience.mdx`, already validated against
  * `src/content/schema.ts` at build time. This component renders; it never
@@ -110,46 +114,104 @@ export function ExperienceSection({
       </h2>
 
       {/* Ordered: the list is reverse-chronological, so sequence carries meaning. */}
-      <ol className="mt-sm space-y-md">
-        {roles.map((role) => (
-          <li key={`${role.employer}|${role.startDate}`} data-testid="role">
-            <h3
-              className="text-body font-semibold text-text-primary"
-              data-testid="role-title"
-            >
-              {role.title}
-            </h3>
+      <ol className="mt-lg space-y-2xl">
+        {roles.map((role, index) => (
+          <li
+            key={`${role.employer}|${role.startDate}`}
+            data-testid="role"
+            data-accent={resolveAccent(role, index)}
+            className="scene relative"
+          >
+            {/* Decorative: the accent wash behind this employer's scene. */}
+            <span aria-hidden="true" className="scene-glow" />
 
-            <p className="text-meta text-text-secondary">
-              <span data-testid="role-employer">{role.employer}</span>
-              {' · '}
-              <span data-testid="role-tenure">
-                {formatTenure(role.startDate, role.endDate)}
-              </span>
-            </p>
+            <div className="grid gap-lg desktop:grid-cols-[0.9fr_1.1fr] desktop:items-start">
+              {/* Column one — who and when. */}
+              <div>
+                <p className="text-label font-extrabold text-accent-section uppercase">
+                  <span aria-hidden="true">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>{' '}
+                  <span data-testid="role-tenure">
+                    {formatTenure(role.startDate, role.endDate)}
+                  </span>
+                </p>
 
-            <ul
-              data-testid="role-bullets"
-              className="mt-xs list-disc space-y-xs pl-sm text-body text-text-primary"
-            >
-              {role.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
-              ))}
-            </ul>
+                {/*
+                  h3, not h2. The reference design makes each company a
+                  section-level heading, but the page outline is
+                  h1 > h2 (section) > h3 (employer) and `page.test.tsx` asserts
+                  exactly four h2s. Visual weight comes from the type token.
+                */}
+                <h3
+                  className="mt-xs text-scene font-extrabold text-text-primary"
+                  data-testid="role-employer"
+                >
+                  {role.employer}
+                </h3>
 
-            {/*
-              Outside the <ul> on purpose — see the component doc comment. A
-              reviewer changing this into an <li> would silently violate
-              `requirements.md`; `ExperienceSection.test.tsx` guards it.
-            */}
-            {role.subLine === undefined ? null : (
-              <p
-                data-testid="role-sub-line"
-                className="mt-xs text-meta text-text-secondary"
-              >
-                {role.subLine}
-              </p>
-            )}
+                <p
+                  className="mt-xs text-body text-text-secondary"
+                  data-testid="role-title"
+                >
+                  {role.title}
+                </p>
+
+                {role.skills === undefined ? null : (
+                  <p
+                    className="mt-sm flex flex-wrap gap-2xs"
+                    data-testid="role-skills"
+                  >
+                    {role.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="lift px-xs py-2xs text-label font-bold text-text-tertiary uppercase"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </p>
+                )}
+
+                {/*
+                  Outside the bullet list on purpose — see the component doc
+                  comment. A reviewer folding this into the list would silently
+                  violate `requirements.md`; the test guards it.
+                */}
+                {role.subLine === undefined ? null : (
+                  <p
+                    data-testid="role-sub-line"
+                    className="mt-sm text-meta text-text-secondary"
+                  >
+                    {role.subLine}
+                  </p>
+                )}
+              </div>
+
+              {/* Column two — what was achieved. */}
+              <div className="panel panel-lit p-sm">
+                {role.metric === undefined ||
+                role.metricLabel === undefined ? null : (
+                  <p
+                    className="mb-sm flex items-end gap-xs border-b border-hairline pb-sm"
+                    data-testid="role-metric"
+                  >
+                    <strong className="text-scene font-extrabold text-accent-section">
+                      {role.metric}
+                    </strong>
+                    <span className="text-label font-bold text-text-tertiary uppercase">
+                      {role.metricLabel}
+                    </span>
+                  </p>
+                )}
+
+                <BulletSlider
+                  bullets={role.bullets}
+                  employer={role.employer}
+                  index={index}
+                />
+              </div>
+            </div>
           </li>
         ))}
       </ol>
