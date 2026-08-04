@@ -18,6 +18,12 @@ const eslintConfig = defineConfig([
     // Not application code: the AI-DLC workspace shell and its records.
     '.claude/**',
     'aidlc/**',
+    // Vendored design reference, not owned by this project. Temporary — it is
+    // deleted once the redesign lands, along with this entry. Without it,
+    // `react-hooks/set-state-in-effect` fails the whole lint run on code we
+    // are only reading. ESLint 9 flat config does not honour .gitignore, so
+    // ignoring it there is not enough.
+    'marlow-fernandez-portfolio-source/**',
   ]),
 ]);
 

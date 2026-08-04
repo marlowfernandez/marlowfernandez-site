@@ -9,6 +9,10 @@ next-env.d.ts
 .claude/
 aidlc/
 
+# Vendored design reference for the redesign, not owned by this project.
+# Temporary: deleted once the redesign lands, along with this entry.
+marlow-fernandez-portfolio-source/
+
 # Vendored AI-DLC harness ports for other agent runtimes. Same rationale as
 # `.claude/` above: upstream-authored files this project does not own or edit.
 # Formatting them would create a permanent diff against upstream for no gain,

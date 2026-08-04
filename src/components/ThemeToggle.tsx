@@ -63,7 +63,7 @@ export function ThemeToggle() {
       data-theme-state={known ? current : 'unknown'}
       // min-h/min-w keep the tappable area at 44x44 on mobile, per
       // `accessibility-checklist.md`'s touch-target item.
-      className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-md border border-border text-text-primary transition-none hover:bg-surface"
+      className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center border border-border text-text-primary transition-none hover:bg-surface"
     >
       <SunIcon />
       <MoonIcon />

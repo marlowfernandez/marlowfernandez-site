@@ -58,28 +58,150 @@
   }
 }
 
+/*
+ * ---------------------------------------------------------------------------
+ * Depth primitives — NOT themed
+ * ---------------------------------------------------------------------------
+ *
+ * Deliberately named `--depth-*` rather than `--token-*`. Every `--token-*`
+ * carries a light and a dark value and is asserted to appear in all three
+ * cascade layers by `theme-tokens.test.ts`; these do not vary by theme, only by
+ * device capability, so keeping them out of that namespace keeps the parity
+ * rule exact rather than riddled with exceptions.
+ *
+ * Overridden to 0 in two places below. `backdrop-filter` is the single largest
+ * source of jank in this design on mid-range mobile GPUs, and Lighthouse
+ * under-reports it because the cost lands on raster rather than the main
+ * thread — the score can stay green while a real phone stutters.
+ */
+:root {
+  --depth-blur-sm: 16px;
+  --depth-blur-md: 20px;
+  --depth-blur-lg: 24px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --depth-blur-sm: 0px;
+    --depth-blur-md: 0px;
+    --depth-blur-lg: 0px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --depth-blur-sm: 0px;
+    --depth-blur-md: 0px;
+    --depth-blur-lg: 0px;
+  }
+}
+
 :root {
   color-scheme: light;
 
-  /* Colour tokens — values verbatim from `design-system-mapping.md`. */
-  --token-background: #ffffff;
-  --token-surface: #f7f7f8;
+  /*
+   * Colour tokens. The six originals came from `design-system-mapping.md`;
+   * `--token-background` moved from #ffffff to a warm off-white as part of the
+   * cinematic redesign, which shifts the documented contrast figures slightly
+   * (text-primary 16.9:1 -> 16.7:1). Every pair below was re-measured, and all
+   * clear their threshold — see the accent note.
+   */
+  --token-background: #f6f6f3;
+  --token-surface: #eeefe9;
   --token-text-primary: #14161a;
   --token-text-secondary: #5a5f6b;
   --token-accent: #2452e8;
   --token-border: #e2e3e6;
+
+  /* Canvas and texture. */
+  --token-canvas-glow: #e9ece4;
+  --token-grid-line: rgba(20, 24, 20, 0.045);
+  --token-grid-opacity: 0.55;
+  --token-scrim-near: rgba(246, 246, 243, 0.96);
+  --token-scrim-far: rgba(246, 246, 243, 0.3);
+
+  /*
+   * Surfaces. The reference's "1px top-light border" only reads on a dark
+   * canvas — on light, the same lift comes from a darker hairline plus a white
+   * inset highlight, which is why `--token-inset-highlight` exists at all.
+   */
+  --token-panel-from: rgba(255, 255, 255, 0.94);
+  --token-panel-to: rgba(249, 249, 246, 0.82);
+  --token-panel-shadow: 0 20px 50px rgba(20, 24, 20, 0.08);
+  --token-hairline: rgba(20, 24, 20, 0.1);
+  --token-hairline-strong: rgba(20, 24, 20, 0.15);
+  --token-lift: rgba(20, 24, 20, 0.028);
+  --token-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  /*
+   * One tertiary grey, replacing the five near-identical greys the reference
+   * used for 8-11px labels — several of which failed 4.5:1.
+   */
+  --token-text-tertiary: #5f645d;
+
+  /*
+   * The hollow half of the two-tone display heading. The reference used
+   * `-webkit-text-stroke` with `color: transparent`; that is unverifiable
+   * contrast (axe reads rgba(0,0,0,0) and reports "incomplete"), so real
+   * content uses a solid colour instead. Large-text threshold, 3:1.
+   */
+  --token-display-ghost: #868b84;
+
+  /*
+   * Per-section accents. The reference's neons are unusable on a light canvas,
+   * so light gets deep equivalents. Every value below was measured against its
+   * own canvas at the 4.5:1 threshold rather than 3:1, because these land on
+   * 10px uppercase labels and dates, not just the large metric figure.
+   *
+   *   light on #f6f6f3 — lime 5.71  violet 7.42  cyan 5.56  orange 6.53
+   *   dark  on #080a0a — lime 16.90 violet 6.89 cyan 13.04 orange 9.78
+   */
+  --token-accent-lime: #4a6b00;
+  --token-accent-violet: #4c35c4;
+  --token-accent-cyan: #0a6f68;
+  --token-accent-orange: #8f4300;
 }
 
+/*
+ * The two dark blocks below MUST declare an identical set of properties with
+ * identical values. They are duplicated rather than shared because collapsing
+ * them needs `light-dark()`, which is Baseline mid-2024 — an older browser
+ * would get an invalid value, leave the token unset, and render the page with
+ * no colours at all. `theme-tokens.test.ts` asserts the parity that makes this
+ * duplication safe.
+ */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --token-background: #0f1115;
-    --token-surface: #1a1d23;
-    --token-text-primary: #e8e9ec;
-    --token-text-secondary: #9aa0ac;
+    --token-background: #080a0a;
+    --token-surface: #121513;
+    --token-text-primary: #f4f4ef;
+    --token-text-secondary: #9d9f9c;
     --token-accent: #5b7fff;
-    --token-border: #2a2e37;
+    --token-border: #23262a;
+
+    --token-canvas-glow: #18201c;
+    --token-grid-line: rgba(255, 255, 255, 0.035);
+    --token-grid-opacity: 0.3;
+    --token-scrim-near: rgba(8, 10, 10, 0.96);
+    --token-scrim-far: rgba(8, 10, 10, 0.25);
+
+    --token-panel-from: rgba(28, 31, 29, 0.83);
+    --token-panel-to: rgba(11, 13, 12, 0.76);
+    --token-panel-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+    --token-hairline: rgba(255, 255, 255, 0.11);
+    --token-hairline-strong: rgba(255, 255, 255, 0.14);
+    --token-lift: rgba(255, 255, 255, 0.025);
+    --token-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    --token-text-tertiary: #8b908c;
+    --token-display-ghost: #5d625c;
+
+    --token-accent-lime: #c9ff4a;
+    --token-accent-violet: #9d86ff;
+    --token-accent-cyan: #54e7d8;
+    --token-accent-orange: #ff9f57;
   }
 }
 
@@ -87,12 +209,52 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --token-background: #0f1115;
-  --token-surface: #1a1d23;
-  --token-text-primary: #e8e9ec;
-  --token-text-secondary: #9aa0ac;
+  --token-background: #080a0a;
+  --token-surface: #121513;
+  --token-text-primary: #f4f4ef;
+  --token-text-secondary: #9d9f9c;
   --token-accent: #5b7fff;
-  --token-border: #2a2e37;
+  --token-border: #23262a;
+
+  --token-canvas-glow: #18201c;
+  --token-grid-line: rgba(255, 255, 255, 0.035);
+  --token-grid-opacity: 0.3;
+  --token-scrim-near: rgba(8, 10, 10, 0.96);
+  --token-scrim-far: rgba(8, 10, 10, 0.25);
+
+  --token-panel-from: rgba(28, 31, 29, 0.83);
+  --token-panel-to: rgba(11, 13, 12, 0.76);
+  --token-panel-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+  --token-hairline: rgba(255, 255, 255, 0.11);
+  --token-hairline-strong: rgba(255, 255, 255, 0.14);
+  --token-lift: rgba(255, 255, 255, 0.025);
+  --token-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  --token-text-tertiary: #8b908c;
+  --token-display-ghost: #5d625c;
+
+  --token-accent-lime: #c9ff4a;
+  --token-accent-violet: #9d86ff;
+  --token-accent-cyan: #54e7d8;
+  --token-accent-orange: #ff9f57;
+}
+
+/*
+ * Per-section accent selection. A `data-accent` attribute on the scene root
+ * maps to a themed token, so `--accent` resolves correctly in both themes with
+ * no extra rules and no inline style objects.
+ */
+[data-accent='lime'] {
+  --accent: var(--token-accent-lime);
+}
+[data-accent='violet'] {
+  --accent: var(--token-accent-violet);
+}
+[data-accent='cyan'] {
+  --accent: var(--token-accent-cyan);
+}
+[data-accent='orange'] {
+  --accent: var(--token-accent-orange);
 }
 
 /*
@@ -116,8 +278,25 @@
   --color-text-secondary: var(--token-text-secondary);
   --color-accent: var(--token-accent);
   --color-border: var(--token-border);
+  --color-text-tertiary: var(--token-text-tertiary);
+  --color-hairline: var(--token-hairline);
+  --color-display-ghost: var(--token-display-ghost);
 
-  /* Type scale. */
+  /*
+   * The per-section accent, as a normal Tailwind colour. `inline` emits the
+   * `var()` verbatim, so `text-accent-section` resolves against whatever
+   * `--accent` the nearest `[data-accent]` ancestor set — one utility serving
+   * four accents, with the global accent as a fallback when there is no scene
+   * ancestor at all.
+   */
+  --color-accent-section: var(--accent, var(--token-accent));
+
+  /*
+   * Type scale. h1/h2/body/meta are unchanged and load-bearing (`text-meta` is
+   * asserted in `ExperienceSection.test.tsx`); the display registers are
+   * additive. The design's signature is the collision of these two extremes —
+   * enormous negative tracking against tiny positive tracking.
+   */
   --text-h1: 2.5rem;
   --text-h1--line-height: 1.15;
   --text-h2: 1.5rem;
@@ -127,11 +306,29 @@
   --text-meta: 0.875rem;
   --text-meta--line-height: 1.5;
 
-  /* Spacing scale. */
+  --text-display: clamp(3.25rem, 8.5vw, 8.25rem);
+  --text-display--line-height: 0.82;
+  --text-display--letter-spacing: -0.075em;
+  --text-scene: clamp(2.5rem, 6.2vw, 5.5rem);
+  --text-scene--line-height: 0.9;
+  --text-scene--letter-spacing: -0.06em;
+  --text-lede: clamp(1.375rem, 2.15vw, 2.25rem);
+  --text-lede--line-height: 1.12;
+  --text-lede--letter-spacing: -0.035em;
+  --text-label: 0.625rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.18em;
+
+  /* Spacing scale. Numeric utilities (`p-4`) do not exist here — every gap the
+   * design needs must be a named step. */
+  --spacing-2xs: 0.25rem;
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
   --spacing-md: 2rem;
   --spacing-lg: 4rem;
+  --spacing-xl: 6rem;
+  --spacing-2xl: 9rem;
+  --spacing-gutter: 6vw;
 
   /*
    * Breakpoints. Tailwind's stock sm/md/lg/xl/2xl are cleared so the only
@@ -179,7 +376,8 @@
   :focus-visible {
     outline: 2px solid var(--token-accent);
     outline-offset: 2px;
-    border-radius: 0.125rem;
+    /* Square, matching the redesign — every surface is a hard rectangle. */
+    border-radius: 0;
   }
 
   /*
@@ -195,5 +393,160 @@
 
   a:hover {
     text-decoration-thickness: 2px;
+  }
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Depth primitives
+ * ---------------------------------------------------------------------------
+ *
+ * The answer to "the old site was too flat". Each class stacks several cheap
+ * cues rather than relying on one — a single shadow reads as a sticker, while
+ * a gradient fill plus a hairline plus an ambient shadow plus a backdrop blur
+ * reads as a surface sitting in space.
+ *
+ * Two rules for anything added here:
+ *   - never declare `display` on a bare element selector (`svg`, `*`). The
+ *     no-JS theme guard resolves the toggle icons' display by last-match, and a
+ *     bare-element rule could win against them.
+ *   - never animate anything that affects layout. `opacity` and `transform`
+ *     only, so CLS stays structurally zero.
+ */
+@layer components {
+  /*
+   * Page canvas. A corner lift so the background is never a flat fill, plus a
+   * masked blueprint grid that gives the surface something to read against.
+   * `isolation: isolate` contains the negative z-index children — without it
+   * they escape behind the page background and vanish.
+   */
+  .canvas {
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(
+        circle at 85% 8%,
+        var(--token-canvas-glow) 0,
+        transparent 34%
+      ),
+      var(--token-background);
+  }
+
+  .canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--token-grid-opacity);
+    background-image:
+      linear-gradient(var(--token-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--token-grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
+  }
+
+  /*
+   * A scene is one full-width band. The ::after scrim is the most underrated
+   * trick in the reference: it sits between the accent glow and the content,
+   * darkening the side the copy lives on so text stays legible over colour and
+   * the glow reads as genuinely behind rather than beside.
+   */
+  .scene {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .scene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      var(--token-scrim-near) 0%,
+      transparent 52%,
+      var(--token-scrim-far) 100%
+    );
+  }
+
+  /*
+   * The accent glow. A multi-stop radial with an off-centre focal point reads
+   * as a light source; a solid circle with a big blur radius reads as a smudge.
+   * `color-mix` is Baseline 2023 — the plain declaration above it is the
+   * fallback for older engines, slightly stronger but correct.
+   */
+  .scene-glow {
+    position: absolute;
+    z-index: -2;
+    width: 62vw;
+    height: 62vw;
+    max-width: 900px;
+    max-height: 900px;
+    right: -22vw;
+    top: -20vw;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.5;
+    background: radial-gradient(
+      circle at 35% 30%,
+      var(--accent, var(--token-accent)),
+      transparent 64%
+    );
+    background: radial-gradient(
+      circle at 35% 30%,
+      color-mix(in srgb, var(--accent, var(--token-accent)) 26%, transparent),
+      transparent 64%
+    );
+  }
+
+  /*
+   * The card. Six depth cues on one element: gradient fill (never a solid),
+   * semi-transparency so the glow bleeds through, a hairline, an ambient
+   * shadow (large and soft at low alpha, so it reads as occlusion rather than
+   * a drop shadow), an inset highlight, and a backdrop blur.
+   */
+  .panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--token-hairline-strong);
+    background-image: linear-gradient(
+      145deg,
+      var(--token-panel-from),
+      var(--token-panel-to)
+    );
+    box-shadow: var(--token-panel-shadow), var(--token-inset-highlight);
+    backdrop-filter: blur(var(--depth-blur-lg));
+  }
+
+  /* The 2px accent light-bar across the top edge, fading out. */
+  .panel-lit::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--accent, var(--token-accent)),
+      transparent 70%
+    );
+  }
+
+  /* Lifted-but-not-filled surfaces: chips, tiles, the header. */
+  .lift {
+    border: 1px solid var(--token-hairline);
+    background-color: var(--token-lift);
+  }
+
+  .glass {
+    background-color: color-mix(
+      in srgb,
+      var(--token-background) 72%,
+      transparent
+    );
+    backdrop-filter: blur(var(--depth-blur-sm));
   }
 }
