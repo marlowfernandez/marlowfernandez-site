@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,6 +58,40 @@ function commandsIn(markdown: string): string[] {
   return [...found];
 }
 
+/** Every file git tracks. */
+function trackedFiles(): string[] {
+  const result = spawnSync('git', ['ls-files'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) return [];
+  return result.stdout
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
+/**
+ * Which of `candidates` git is configured to ignore.
+ *
+ * One subprocess for the whole set rather than one per path.
+ * `check-ignore` exits 1 when nothing matches, which is not an error here.
+ */
+function ignoredPaths(candidates: string[]): Set<string> {
+  if (candidates.length === 0) return new Set();
+  const result = spawnSync('git', ['check-ignore', '--stdin'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    input: candidates.join('\n'),
+  });
+  return new Set(
+    (result.stdout ?? '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0),
+  );
+}
+
 /** Backticked tokens that look like repository paths, e.g. `src/content/`. */
 function pathsIn(markdown: string): string[] {
   const found = new Set<string>();
@@ -93,24 +128,48 @@ describe('README stays true', () => {
     expect(referenced.length).toBeGreaterThan(0);
 
     /*
-     * Only paths rooted in a directory this repo actually has.
+     * A path is checkable when the repository OWNS its directory and git does
+     * not ignore it. Two kinds of reference must be excluded, and getting this
+     * filter wrong is easy in both directions:
      *
-     * The README legitimately refers to other repositories' layouts — it
-     * describes the upstream AI-DLC distribution's `dist/claude/`, which does
-     * not and should not exist here. Requiring every backticked path to
-     * resolve locally would flag that forever, and a check that cries wolf
-     * gets deleted.
+     *   - other repositories' layouts. The README describes upstream AI-DLC's
+     *     `dist/claude/`, which does not and should not exist here. Its parent
+     *     holds no tracked files, so it is skipped.
+     *   - real but gitignored files, like `.claude/settings.local.json` — a
+     *     per-developer override the README correctly tells people to create.
+     *     It exists on a worked-in machine and never in a fresh clone, so a
+     *     plain existence check passed locally and failed in CI. An
+     *     environment-dependent test is worse than no test.
      *
-     * The signal worth keeping is a path INSIDE a real directory going stale,
-     * e.g. a renamed component still documented at its old location. Those
-     * share a first segment with something real, so they are still caught.
+     * The first attempt at this filter required the path itself to be TRACKED,
+     * which quietly destroyed the point: a documented path that no longer
+     * exists is, by definition, not tracked, so the one case worth catching
+     * was the one being skipped. Falsification caught it — adding a reference
+     * to a nonexistent component failed to fail.
+     *
+     * Owning the DIRECTORY is the right question. A renamed component still
+     * documented at its old path sits in a directory full of tracked files,
+     * so it is checked and it fails.
      */
-    const local = referenced.filter((candidate) => {
-      const [head] = candidate.split('/');
-      return head !== undefined && existsSync(path.join(ROOT, head));
+    const trackedDirs = new Set(
+      trackedFiles().map((file) => path.posix.dirname(file)),
+    );
+    const ignored = ignoredPaths(referenced);
+
+    const checkable = referenced.filter((candidate) => {
+      if (ignored.has(candidate)) return false;
+      const parent = path.posix.dirname(candidate);
+      // The directory itself, or the directory it lives in, must be one the
+      // repository has files in.
+      return trackedDirs.has(candidate) || trackedDirs.has(parent);
     });
 
-    const missing = local.filter(
+    expect(
+      checkable.length,
+      'no checkable paths found in README — the filter is too aggressive',
+    ).toBeGreaterThan(0);
+
+    const missing = checkable.filter(
       (candidate) => !existsSync(path.join(ROOT, candidate)),
     );
     expect(
