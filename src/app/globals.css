@@ -875,6 +875,59 @@
   }
 
   /*
+   * Contact tiles. Full inversion on hover and on keyboard focus — the
+   * `:focus-visible` half matters as much as the hover half, or the affordance
+   * exists only for a mouse.
+   */
+  .contact-tile {
+    min-height: 5.5rem;
+    padding: var(--spacing-sm);
+    gap: var(--spacing-2xs);
+    text-decoration: none;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .contact-tile:hover,
+  .contact-tile:focus-visible {
+    background-color: var(--accent, var(--token-accent));
+    border-color: var(--accent, var(--token-accent));
+    /* The canvas colour, so the text reads against the filled accent. */
+    color: var(--token-background);
+  }
+
+  .contact-tile-label {
+    font-size: var(--text-label);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--token-text-tertiary);
+  }
+
+  .contact-tile:hover .contact-tile-label,
+  .contact-tile:focus-visible .contact-tile-label {
+    color: inherit;
+  }
+
+  .contact-tile-value {
+    font-size: 1rem;
+    color: var(--token-text-primary);
+  }
+
+  .contact-tile:hover .contact-tile-value,
+  .contact-tile:focus-visible .contact-tile-value {
+    color: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact-tile {
+      transition: none;
+    }
+  }
+
+  /*
    * The frozen row. Hidden until `SceneNav` reports that the hero has scrolled
    * away, then slides in beside the monogram.
    *

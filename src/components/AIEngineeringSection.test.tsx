@@ -33,19 +33,19 @@ describe('AIEngineeringSection — ADR-1 format', () => {
   it('renders the confirmed items, in order, as one joined line', () => {
     renderReal();
 
-    // The list was expanded by the site's owner at the redesign; ADR-1's
-    // original five became eight. What ADR-1 actually constrains is the
-    // *shape* — plain text, no links, no chip grid — and that is asserted
-    // below and unchanged. The list itself is content, and content is theirs.
+    // The list was expanded and then revised by the site's owner. What ADR-1
+    // actually constrains is the *shape* — plain text, no links, no chip grid
+    // — and that is asserted below and unchanged. The list itself is content,
+    // and content is theirs.
     expect(aiEngineering.items).toEqual([
       'AI governance for payments',
-      'openclaw',
-      'LiteLLM',
-      'frontier model APIs',
+      'OpenClaw & Hermes Agent',
+      'LiteLLM with frontier model Key management',
       'agent recognition of environment differences via Terraform',
       'local inference with Ollama and llama.cpp',
-      'self-hosted Qwen3.6',
+      'self-hosted Qwen3.6-27B and Qwen3.8-27B',
       'AI-DLC',
+      'and much more.',
     ]);
     expect(screen.getByTestId('ai-engineering-items')).toHaveTextContent(
       aiEngineering.items.join(', '),

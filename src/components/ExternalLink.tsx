@@ -15,13 +15,31 @@
 export interface ExternalLinkProps {
   href: string;
   label: string;
+  /**
+   * Decorative label rendered above `label`. Excluded from the accessible name
+   * via `aria-hidden`, so adding one cannot change what a screen reader
+   * announces.
+   */
+  eyebrow?: string;
+  /**
+   * Decorative glyph rendered before the label. Presentational only — the
+   * icon components already carry `aria-hidden`, so it adds nothing to the
+   * accessible name.
+   */
+  icon?: React.ReactNode;
   className?: string;
 }
 
 /** Kept as a named export so tests assert the announcement, not a copy of it. */
 export const NEW_TAB_ANNOUNCEMENT = '(opens in new tab)';
 
-export function ExternalLink({ href, label, className }: ExternalLinkProps) {
+export function ExternalLink({
+  href,
+  label,
+  eyebrow,
+  icon,
+  className,
+}: ExternalLinkProps) {
   return (
     <a
       href={href}
@@ -30,7 +48,25 @@ export function ExternalLink({ href, label, className }: ExternalLinkProps) {
       data-testid="external-link"
       {...(className === undefined ? {} : { className })}
     >
-      {label}{' '}
+      {/*
+        Optional eyebrow, e.g. "LinkedIn" above the handle on a contact tile.
+        Deliberately NOT `aria-hidden`: it names the destination, so hiding it
+        would leave a screen reader announcing "/in/marlowf, opens in new tab"
+        — the visual treatment would be carrying meaning that assistive
+        technology never receives. It joins the accessible name instead,
+        giving "LinkedIn /in/marlowf (opens in new tab)".
+      */}
+      {icon}
+      {eyebrow === undefined ? null : (
+        <>
+          <span className="contact-tile-label">{eyebrow}</span>{' '}
+        </>
+      )}
+      <span
+        className={eyebrow === undefined ? undefined : 'contact-tile-value'}
+      >
+        {label}
+      </span>{' '}
       {/*
         Inside the anchor so it becomes part of the computed accessible name —
         a screen reader reads "LinkedIn, opens in new tab" when the link takes

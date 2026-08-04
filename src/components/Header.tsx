@@ -38,6 +38,20 @@ export interface HeaderProps {
   contactInfo: ContactInfo;
 }
 
+/**
+ * Header contact items.
+ *
+ * Bordered micro-caps chips rather than default-styled links, matching the
+ * eyebrow register the rest of the page uses. The global `a` rule sets the
+ * accent colour and an underline, which read as body-copy links dropped into
+ * a chrome bar; `no-underline` and an explicit colour opt out.
+ *
+ * `min-h-9` keeps the bar compact while `Header`'s own `min-h-11` targets are
+ * preserved on the toggle, which is the item most likely to be tapped.
+ */
+const GLYPH_CLASS =
+  'lift inline-flex min-h-9 items-center gap-xs px-xs text-label font-bold tracking-[0.12em] text-text-secondary uppercase no-underline transition-colors hover:border-accent-section hover:text-text-primary';
+
 /** "Marlow Fernandez" -> "MF". Falls back to whatever initials exist. */
 function initialsOf(name: string): string {
   return name
@@ -101,10 +115,12 @@ export function Header({ name, contactInfo }: HeaderProps) {
             testId="header-email"
           />
 
-          <span className="inline-flex items-center gap-xs text-meta">
-            <LinkedInIcon />
-            <ExternalLink href={contactInfo.linkedInUrl} label="LinkedIn" />
-          </span>
+          <ExternalLink
+            href={contactInfo.linkedInUrl}
+            label="LinkedIn"
+            icon={<LinkedInIcon />}
+            className={GLYPH_CLASS}
+          />
 
           <ThemeToggle />
         </div>
@@ -142,21 +158,14 @@ function ContactItem({
 
   if (href === undefined) {
     return (
-      <span
-        data-testid={testId}
-        className="inline-flex items-center gap-xs text-meta text-text-secondary"
-      >
+      <span data-testid={testId} className={`${GLYPH_CLASS} cursor-default`}>
         {body}
       </span>
     );
   }
 
   return (
-    <a
-      href={href}
-      data-testid={testId}
-      className="inline-flex items-center gap-xs text-meta"
-    >
+    <a href={href} data-testid={testId} className={GLYPH_CLASS}>
       {body}
     </a>
   );

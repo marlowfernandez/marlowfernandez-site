@@ -40,34 +40,46 @@ export function EducationSection({
         </h2>
 
         {/*
-        Unordered: degree and certification are two independent credentials, not
-        a sequence — unlike Experience, where order carries meaning.
-      */}
-        <ul className="mt-sm space-y-sm">
-          {education.map((entry) => (
+          Unordered: degree and certification are two independent credentials,
+          not a sequence — unlike Experience, where order carries meaning.
+
+          Each credential is a panel rather than a run of text. The section was
+          previously a few lines of small type inside a viewport-tall scene,
+          which read as an afterthought; giving each entry its own surface lets
+          it hold the space the scene allocates it.
+        */}
+        <ul className="mt-lg grid gap-md desktop:grid-cols-2">
+          {education.map((entry, index) => (
             <li
               key={`${entry.institution}|${entry.credential}`}
               data-testid="education-entry"
+              data-accent={index % 2 === 0 ? 'cyan' : 'violet'}
+              className="panel panel-lit p-md"
             >
+              <p className="text-label font-extrabold text-accent-section uppercase">
+                <span aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>{' '}
+                <span data-testid="education-year">{entry.year}</span>
+              </p>
+
               <h3
-                className="text-body font-semibold text-text-primary"
+                className="mt-sm text-scene font-extrabold text-text-primary"
                 data-testid="education-credential"
               >
                 {entry.credential}
               </h3>
 
-              <p className="text-meta text-text-secondary">
+              <p className="mt-xs text-body text-text-secondary">
                 <span data-testid="education-institution">
                   {entry.institution}
                 </span>
-                {' · '}
-                <span data-testid="education-year">{entry.year}</span>
               </p>
 
               {entry.detail === undefined ? null : (
                 <p
                   data-testid="education-detail"
-                  className="mt-xs text-meta text-text-secondary"
+                  className="lift mt-md inline-block px-sm py-xs text-meta text-text-tertiary"
                 >
                   {entry.detail}
                 </p>

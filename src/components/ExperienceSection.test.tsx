@@ -53,7 +53,11 @@ describe('ExperienceSection — the four confirmed employers', () => {
 
     expect(employers).toEqual([
       'Point & Pay',
-      'HII Technical Solutions',
+      // Names the contracting client, matching how Syzygy already does. Both
+      // are already disclosed in their own bullets ("Department of Defense
+      // (Navy) clients"), so this surfaces an approved fact rather than adding
+      // one.
+      'HII Technical Solutions (Department of Defense - DoD)',
       'Syzygy Integration (Department of Homeland Security Contract)',
       'Palm Coast Data',
     ]);

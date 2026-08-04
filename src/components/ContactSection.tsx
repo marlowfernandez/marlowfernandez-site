@@ -39,7 +39,7 @@ export interface ContactSectionProps {
  * the redesign's tile treatment; adding to this string is safe, removing
  * `min-h-11` is not.
  */
-const ITEM_CLASS = 'lift inline-flex min-h-11 items-center px-sm';
+const ITEM_CLASS = 'contact-tile lift flex min-h-11 flex-col justify-center';
 
 export function ContactSection({
   heading,
@@ -53,8 +53,24 @@ export function ContactSection({
       data-testid="section-contact"
       data-reveal=""
       data-snap=""
-      className={className === undefined ? 'py-xl' : `py-xl ${className}`}
+      /*
+       * `scene` is load-bearing here, not decoration: it carries
+       * `overflow-x: clip`, and the orb below is deliberately positioned past
+       * the right edge. Without it the orb widens the document and the page
+       * gains a horizontal scrollbar — a WCAG 1.4.10 reflow failure.
+       */
+      className={
+        className === undefined
+          ? 'scene relative py-xl'
+          : `scene relative py-xl ${className}`
+      }
     >
+      {/* Decorative: the closing scene gets its own light source. */}
+      <span
+        aria-hidden="true"
+        className="orb orb-drift right-[-10vw] top-[-6vw] w-[min(48vw,620px)]"
+      />
+
       <div className="shell">
         <h2
           id="contact-heading"
@@ -63,14 +79,31 @@ export function ContactSection({
           {heading}
         </h2>
 
-        <ul className="mt-xs flex flex-wrap items-center gap-x-sm text-body">
+        {/*
+          The closing statement, at display scale. This scene is the last thing
+          a reader sees and gets a full viewport like every other; previously
+          it held one small line of links and read as a footer that had wandered
+          up the page.
+
+          `aria-hidden` on the decorative half: it is presentation, and the
+          section already has its accessible name from the h2 above.
+        */}
+        <p
+          aria-hidden="true"
+          className="mt-md max-w-[18ch] text-display font-extrabold text-text-primary"
+        >
+          Let&apos;s <span className="text-display-ghost">talk.</span>
+        </p>
+
+        <ul className="mt-xl grid gap-sm tablet:grid-cols-2 desktop:max-w-[62ch]">
           <li>
             <a
               href={`mailto:${contactInfo.email}`}
               data-testid="contact-email"
               className={ITEM_CLASS}
             >
-              {contactInfo.email}
+              <span className="contact-tile-label">Email</span>
+              <span className="contact-tile-value">{contactInfo.email}</span>
             </a>
           </li>
 
@@ -80,7 +113,8 @@ export function ContactSection({
                 data-testid="contact-phone"
                 className={`${ITEM_CLASS} text-text-primary`}
               >
-                {contactInfo.phone}
+                <span className="contact-tile-label">Phone</span>
+                <span className="contact-tile-value">{contactInfo.phone}</span>
               </span>
             </li>
           )}
@@ -88,7 +122,8 @@ export function ContactSection({
           <li>
             <ExternalLink
               href={contactInfo.linkedInUrl}
-              label="LinkedIn"
+              label="/in/marlowf"
+              eyebrow="LinkedIn"
               className={ITEM_CLASS}
             />
           </li>

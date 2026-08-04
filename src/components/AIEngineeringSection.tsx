@@ -79,7 +79,7 @@ export function AIEngineeringSection({
 
         <p
           data-testid="ai-engineering-items"
-          className="mt-md max-w-[70ch] text-body text-text-secondary"
+          className="mt-md max-w-[62ch] text-lede text-text-secondary"
         >
           {items.join(ITEM_SEPARATOR)}
         </p>
