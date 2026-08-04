@@ -95,11 +95,19 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2.9.0
         with:
-          # `--base out` is required, not cosmetic: the export emits
+          # `--root-dir` is required, not cosmetic: the export emits
           # root-absolute asset paths (`/_next/static/...`), which have no
-          # meaning against a bare filesystem path. Without a base, every asset
-          # link is unresolvable and the gate fails on correct output.
-          args: --no-progress --base out 'out/**/*.html'
+          # meaning against a bare filesystem path. Without it, every asset link
+          # is unresolvable and the gate fails on correct output.
+          #
+          # It must be `--root-dir` and not `--base`, and the path must be
+          # ABSOLUTE. The first attempt used `--base out` and lychee rejected it
+          # outright ("Base must either be a full URL (with scheme) or an
+          # absolute local path... If you want to resolve root-relative links in
+          # local files, also see `--root-dir`") — exiting 2 in 171ms without
+          # checking a single link. `--base` rewrites relative links against a
+          # URL prefix; `--root-dir` is what maps a leading `/` onto a directory.
+          args: --no-progress --root-dir ${{ github.workspace }}/out 'out/**/*.html'
           fail: true
 
       # --- Performance and accessibility budgets --------------------------

@@ -122,6 +122,8 @@ The reasoning generalises: a dev-only tool that never ships is still a permanent
 
 **`linkedin.com`** returns HTTP 999 to any non-browser client. That is bot detection, not a broken link. Left in, it would fail every run. *Residual risk, stated rather than hidden: a typo in the LinkedIn URL would not be caught by CI.* It is the site's only external destination and is hand-verified.
 
+> **Corrected on first CI run (2026-08-04).** The step originally passed `--base out`. lychee rejected it in 171ms with exit 2, without checking a single link: *"Base must either be a full URL (with scheme) or an absolute local path… If you want to resolve root-relative links in local files, also see `--root-dir`."* Two things were wrong — `--base` rewrites relative links against a URL prefix, whereas `--root-dir` is what maps a leading `/` onto a directory; and the path must be absolute. Now `--root-dir ${{ github.workspace }}/out`. This was found only by running it: the equivalent-property script used locally verified that the links resolve, which was true, but could not have caught a wrong flag name.
+
 **`marlowfernandez.com` / `marlow.software`** — the site's own canonical and redirect domains, emitted into every page by `metadataBase`. Excluding these breaks a genuine **deadlock**, not an inconvenience: the check runs in `verify`, `deploy` runs only after `verify` passes, and the domain does not resolve until a deploy has succeeded. Checked, the first run would fail on a URL that cannot exist yet — and would keep failing forever, because the deploy that would make it resolve is gated behind the check itself.
 
 Liveness of the deployed domains belongs to `deployment-execution` (4.3), which verifies both with `curl` including the 301 from the redirect domain.
