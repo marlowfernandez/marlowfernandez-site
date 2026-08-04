@@ -857,10 +857,23 @@
 
     .slider-pages {
       display: block;
+      /*
+       * Load-bearing, and its absence was a real bug: the desktop rule sets a
+       * definite height because column wrapping requires one. Turning the
+       * container back into a block without clearing that height left every
+       * bullet past the first few spilling out of a fixed box — the list
+       * looked truncated on mobile.
+       *
+       * Nothing wraps here, so there is nothing for a height to constrain.
+       */
+      height: auto;
     }
 
     .slider-bullet {
-      margin-block-end: var(--spacing-xs);
+      /* No column to belong to, so the width cap and the flex basis go too. */
+      width: auto;
+      max-width: none;
+      margin-block-end: var(--spacing-sm);
     }
 
     .slider-controls {
@@ -1041,6 +1054,12 @@
    *     the viewport mid-scroll and would reflow every scene below.
    *   - `(min-height: 760px)` keeps it off short windows, where a viewport-tall
    *     scene cannot hold its own content and snapping fights the reader.
+   *   - `(min-width: 768px)` matches the breakpoint where the bullet slider
+   *     paginates. Below it the slider stands down and every bullet stacks, so
+   *     an Experience scene runs ~3000px — and mandatory snapping on a scene
+   *     four times its viewport is precisely the trap warned about below.
+   *     Missing this gate was a real bug: a narrow desktop window (fine
+   *     pointer, tall enough) got snapping with unpaginated scenes.
    *
    * `mandatory`, so a gesture always lands on a scene rather than parking
    * between two. Proximity was tried first and read as indecisive — it only
@@ -1054,7 +1073,7 @@
    * than growing. Verified at 1280x900 — eight scenes, none overflowing. If a
    * future scene can outgrow its viewport, this must go back to `proximity`.
    */
-  @media (min-height: 760px) and (pointer: fine) {
+  @media (min-width: 768px) and (min-height: 760px) and (pointer: fine) {
     html {
       scroll-snap-type: y mandatory;
     }

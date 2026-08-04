@@ -1,0 +1,35 @@
+MIT License
+
+Copyright (c) 2026 Marlow Fernandez
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+A note on what this covers, which the MIT text above cannot say for itself:
+
+The licence is intended for the TEMPLATE — the components, styling, build
+setup, tests, and the AI-DLC workflow record. Fork it, strip the content, and
+make it yours; that is what it is here for.
+
+The files under `src/content/` are one person's résumé: employment history,
+credentials, and contact details. Copying those verbatim is not a licensing
+question but an honesty one — replace them with your own. Nothing in this
+licence grants any right to use "Marlow Fernandez" as a name, or to represent
+someone else's work experience as your own.

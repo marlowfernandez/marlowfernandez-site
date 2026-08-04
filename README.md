@@ -178,3 +178,54 @@ The tests guard what they can: the Vynkor line must render as its own element
 rather than an employer bullet, and the AI Engineering section must contain zero
 anchors (a deliberate decision, not an oversight — even a link to this
 repository was considered and declined).
+
+## Using this as a template
+
+Licensed **MIT** — see [LICENSE](LICENSE). Fork it, strip the content, make it
+yours. That is what it is here for.
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+What to replace, in order:
+
+1. **`src/content/*.mdx`** — all five files. This is one person's résumé:
+   employment history, credentials, contact details. Copying it verbatim is not
+   a licensing question but an honesty one.
+2. **`public/CNAME`** — one line, your domain. GitHub Pages reads it from the
+   published artifact; lose it and the custom domain stops resolving.
+3. **`src/app/layout.tsx`** — `metadataBase`, title, and Open Graph fields.
+4. **`src/app/icon.svg`** — the monogram favicon.
+5. **`.lycheeignore`** — it excludes this site's own canonical URLs, which
+   cannot resolve until a first deploy has succeeded. Swap in yours or the
+   link check deadlocks against the deploy that would fix it.
+
+Content shape is validated at build time by `src/content/schema.ts`, so a
+malformed edit fails `npm run build` rather than shipping a broken page.
+
+**The licence covers the template, not the identity.** Nothing in it grants any
+right to use the name "Marlow Fernandez" or to present someone else's work
+experience as your own.
+
+## Documentation staleness
+
+`src/content/readme.test.ts` checks the claims in this file that are
+mechanically checkable: every `npm run` command documented here exists in
+`package.json`, every repository path referenced here resolves, and the licence
+named here has a matching file. It runs in the normal test suite, so it fires
+in the pre-commit hook too — a README claim breaks at the moment it breaks,
+rather than on someone's next push.
+
+It cannot check whether the prose is still _true_. That still needs a reader.
+
+Note that `README.md` is deliberately **not** in `ci.yml`'s `paths-ignore`.
+That list exists so record-keeping commits (`aidlc/**`, `.claude/**`) do not
+redeploy a byte-identical site — but `paths-ignore` skips the _entire_
+workflow, so ignoring the README would mean a README-only commit runs no checks
+at all, including this one, on the very commit that changed it. A rare wasted
+build is the cheaper mistake.
