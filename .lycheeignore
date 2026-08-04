@@ -1,0 +1,31 @@
+# Link-check exclusions for marlowfernandez.com
+#
+# One regex per line. Every entry needs a reason: an unexplained exclusion is
+# indistinguishable from a silently broken link, and `team.md` names "links
+# resolve" as a required CI gate.
+
+# LinkedIn returns HTTP 999 to any client that is not a real browser. It is a
+# bot-detection response, not a broken link — the URL resolves fine for a human.
+# Left in, it would fail every run and make a required gate permanently red.
+#
+# Residual risk, stated rather than hidden: a typo in this URL would NOT be
+# caught by CI. It is one hand-verified link, and it is the only external
+# destination on the site.
+^https?://(www\.)?linkedin\.com/
+
+# The site's own canonical URL, emitted into every page's `<link rel=canonical>`
+# and Open Graph tags by `metadataBase`.
+#
+# Excluding this breaks a genuine deadlock rather than dodging a failure: the
+# link check runs in `verify`, `deploy` runs only after `verify` passes, and the
+# domain does not resolve until a deploy has succeeded. Checked, the first run
+# would fail on a URL that cannot exist yet — and would keep failing, because
+# the deploy that would make it resolve is gated behind the check itself.
+#
+# `deployment-execution` (4.3) verifies both live domains directly with curl,
+# which is the correct place for a liveness check on a deployed URL.
+^https?://(www\.)?marlowfernandez\.com
+
+# Same reasoning for the redirect domain, which `deployment-pipeline` (4.1)
+# configures and `deployment-execution` (4.3) verifies returns 301.
+^https?://(www\.)?marlow\.software

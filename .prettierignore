@@ -8,3 +8,11 @@ next-env.d.ts
 # AI-DLC workspace shell and records — authored by the workflow, not by Prettier.
 .claude/
 aidlc/
+
+# Vendored AI-DLC harness ports for other agent runtimes. Same rationale as
+# `.claude/` above: upstream-authored files this project does not own or edit.
+# Formatting them would create a permanent diff against upstream for no gain,
+# and would fail `format:check` on 52 files nobody here wrote.
+.agents/
+.codex/
+AGENTS.md

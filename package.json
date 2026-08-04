@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lhci": "npx --yes @lhci/cli@0.15.1 autorun"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

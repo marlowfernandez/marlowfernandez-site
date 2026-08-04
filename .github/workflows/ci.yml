@@ -1,0 +1,154 @@
+# marlowfernandez.com — CI and deploy to GitHub Pages
+#
+# GATE SHAPE (ci-pipeline Q1)
+# --------------------------
+# `team.md` resolved this project to direct commits on `main` with no pull
+# requests, so there is no merge to block: by the time this workflow runs, the
+# commit already exists on `main`. Branch protection was considered and rejected
+# at Q1 as reintroducing a PR-shaped gate against that practice.
+#
+# What CI *can* enforce is what the public sees. `deploy` declares
+# `needs: verify`, so a single failing check in `verify` means the deploy job
+# never starts and the previously deployed site stays live. A broken build lands
+# in history; it does not land on the domain.
+#
+# This is one of two layers, not the only one — `.githooks/pre-commit` runs the
+# same lint/format/type/test set locally before a commit is created, plus a
+# gitleaks scan. CI is the backstop and the deploy gate.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege by default; the deploy job widens this for itself only.
+permissions:
+  contents: read
+
+# Never let two deploys race to the same Pages site. `cancel-in-progress: false`
+# is deliberate: cancelling a half-finished Pages deployment can leave the site
+# in an inconsistent state, so queued runs wait rather than interrupt.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      # `npm ci` not `npm install` — installs exactly the lockfile, and fails if
+      # package.json and the lockfile have drifted apart.
+      - name: Install dependencies
+        run: npm ci
+
+      # --- Quality gate, in ascending order of cost ----------------------
+      # Ordered cheapest-first so an obvious failure reports in seconds rather
+      # than after a full build.
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Covers the two checks `team.md` names explicitly — the theme-toggle
+      # behaviour check and build-time content-schema validation — along with
+      # the no-JS theme cascade guard in `src/app/theme-variant.test.ts`.
+      - name: Test
+        run: npm test
+
+      - name: Build (static export)
+        run: npm run build
+
+      # --- Advisory: dependency audit ------------------------------------
+      # Reports, never remediates. `project.md` (Forbidden) prohibits
+      # auto-merging any dependency update at any tier, patch included, so a
+      # step that could change dependencies unattended is out of the question.
+      #
+      # `continue-on-error` is load-bearing rather than lax: the current tree
+      # carries 3 high-severity advisories inside `next@16.2.12`'s own
+      # dependency graph with no fix available at any version, and
+      # `npm audit fix --force` proposes downgrading Next to 9.3.3. A blocking
+      # audit step would therefore fail every single run for a condition no one
+      # can act on, and a permanently red gate is one nobody reads.
+      - name: Dependency audit (advisory)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      # --- Link resolution ------------------------------------------------
+      # `team.md` names "links resolve" as a required gate. Runs against the
+      # built export, which is what actually ships. Exclusions live in
+      # `.lycheeignore` with per-entry reasons.
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2.9.0
+        with:
+          # `--base out` is required, not cosmetic: the export emits
+          # root-absolute asset paths (`/_next/static/...`), which have no
+          # meaning against a bare filesystem path. Without a base, every asset
+          # link is unresolvable and the gate fails on correct output.
+          args: --no-progress --base out 'out/**/*.html'
+          fail: true
+
+      # --- Performance and accessibility budgets --------------------------
+      # Thresholds confirmed at NFR Requirements Q1 and asserted in
+      # `lighthouserc.json`. Per ci-pipeline Q2 the Accessibility score is a
+      # regression guard, NOT a WCAG 2.1 AA conformance claim.
+      #
+      # Run as a pinned action rather than a devDependency on purpose. Installing
+      # `@lhci/cli` locally pulled five additional advisories (inquirer, tmp,
+      # uuid, external-editor) into a tree that otherwise carries three, all of
+      # them in a tool that only ever executes here. Keeping it out of
+      # package.json keeps `npm audit` readable — and an audit signal nobody can
+      # read is the same as no audit signal. `npm run lhci` reproduces this
+      # locally via pinned npx, without adding to the lockfile.
+      - name: Lighthouse budgets
+        uses: treosh/lighthouse-ci-action@12.6.2
+        with:
+          configPath: ./lighthouserc.json
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v7
+        with:
+          name: static-export
+          path: out/
+          retention-days: 7
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: out/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # THE GATE. Any failure above and this job does not run.
+    needs: verify
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write # publish to the Pages site
+      id-token: write # OIDC token deploy-pages exchanges to prove provenance
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # Publishes the `github-pages` artifact uploaded by `verify`. No
+      # `configure-pages` step: its only output is a base path this build does
+      # not consume — the site is served from a domain apex, not a subpath.
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5

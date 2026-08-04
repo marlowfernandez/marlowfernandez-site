@@ -60,6 +60,17 @@ aidlc/diagnostics/
 # which was proven to corrupt the multi-line audit blocks) ·
 # aidlc/spaces/*/intents/*/<phase>/<stage>/*.md (artifacts + diary).
 .claude/settings.local.json
+#
+# AI-DLC ports for OTHER agent runtimes — ignored. The distribution ships the
+# same workflow for several harnesses: `.claude/` (Claude Code, the one this
+# project uses), `.agents/` (generic), and `.codex/` + `AGENTS.md` (Codex).
+# Committing 565K across 69 files for harnesses this project never invokes adds
+# noise to a public repository whose point is to be read by people. Consistent
+# with the other unused framework surface already removed here (`.mcp.json`, the
+# Bedrock env block). Delete these three lines to track them instead.
+.agents/
+.codex/
+/AGENTS.md
 
 # Source resume PDF — content is confirmed public on the site itself
 # (requirements-analysis, 260726-resume-site), but the raw file was never a

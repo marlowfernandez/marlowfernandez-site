@@ -1,0 +1,99 @@
+#!/bin/sh
+#
+# marlowfernandez.com — pre-commit gate
+#
+# WHY THIS EXISTS
+# ---------------
+# `team.md` (Way of Working) resolved this project to direct commits on `main`:
+# no feature branches, no pull requests, no second reviewer. That removes the
+# merge boundary most projects hang their quality gate on, so the gate moves to
+# the commit boundary itself. This file *is* that gate.
+#
+# `project.md` (Mandated) requires two things of this hook by name:
+#   - a lint/format pass before every commit, with CI as the backstop after push
+#   - a local `gitleaks` scan, as one of two independent secret-scanning layers
+#     (GitHub push protection is the other), because the repository is public by
+#     design and no reviewer stands between a leaked credential and exposure
+#
+# Checks 3 and 4 (tests, typecheck) go beyond that mandated minimum. They are
+# here deliberately: the full suite runs in about three seconds, and the whole
+# point of the CI-pipeline decision was that the local gate should be real
+# rather than ceremonial.
+#
+# INSTALL (once per clone — hooks are not copied by `git clone`):
+#   git config core.hooksPath .githooks
+#
+# BYPASS: `git commit --no-verify`. Git's own escape hatch is deliberately the
+# only one — this hook adds no `SKIP=1` variable, because a documented bypass on
+# a mandated security control is the same as not mandating it.
+
+set -e
+
+echo "pre-commit: running local gate..."
+
+# --- 1. Secret scan -------------------------------------------------------
+# Scans staged content only, which is exactly what is about to become a commit.
+# Fails closed when gitleaks cannot be found: a secret scanner that silently
+# no-ops when missing provides the appearance of protection and none of it, and
+# this repository is public.
+#
+# Resolution order is PATH, then $GITLEAKS, then known install locations.
+# The fallbacks exist because "not on PATH" and "not installed" are different
+# problems that look identical to `command -v` — on this machine winget had
+# installed gitleaks 8.30.1 without ever creating its PATH shim, and testing
+# only PATH reported a working scanner as absent.
+resolve_gitleaks() {
+  if command -v gitleaks >/dev/null 2>&1; then command -v gitleaks; return 0; fi
+  if [ -n "$GITLEAKS" ] && [ -x "$GITLEAKS" ]; then echo "$GITLEAKS"; return 0; fi
+  for c in \
+    "$LOCALAPPDATA/Microsoft/WinGet/Links/gitleaks.exe" \
+    "$LOCALAPPDATA/Microsoft/WinGet/Packages/Gitleaks.Gitleaks_Microsoft.Winget.Source_8wekyb3d8bbwe/gitleaks.exe" \
+    "$USERPROFILE/scoop/shims/gitleaks.exe" \
+    "$HOME/go/bin/gitleaks" \
+    "/usr/local/bin/gitleaks"
+  do
+    [ -x "$c" ] && { echo "$c"; return 0; }
+  done
+  return 1
+}
+
+GITLEAKS_BIN="$(resolve_gitleaks)" || {
+  echo "  [1/4] gitleaks — NOT FOUND"
+  echo ""
+  echo "  project.md mandates a local gitleaks scan before every commit."
+  echo "  This repository is public; secrets pushed here are exposed"
+  echo "  immediately and must be treated as compromised, not just removed."
+  echo ""
+  echo "  If it is installed but not on PATH, point at it directly:"
+  echo "    GITLEAKS=/full/path/to/gitleaks.exe git commit ..."
+  echo ""
+  echo "  Otherwise install one of:"
+  echo "    winget install gitleaks"
+  echo "    scoop install gitleaks"
+  echo "    go install github.com/gitleaks/gitleaks/v8@latest"
+  echo ""
+  echo "  To bypass once (you accept the risk):"
+  echo "    git commit --no-verify"
+  echo ""
+  exit 1
+}
+
+echo "  [1/4] gitleaks (staged)"
+"$GITLEAKS_BIN" git --staged --redact --no-banner
+
+# --- 2. Format ------------------------------------------------------------
+# Checks, never rewrites. A hook that reformats files mid-commit produces a
+# commit whose contents differ from what was staged and reviewed.
+echo "  [2/4] prettier --check"
+npm run --silent format:check
+
+# --- 3. Lint -------------------------------------------------------------
+echo "  [3/4] eslint"
+npm run --silent lint
+
+# --- 4. Types and tests ---------------------------------------------------
+echo "  [4/4] tsc --noEmit && vitest run"
+npm run --silent typecheck
+npm run --silent test
+
+echo "pre-commit: passed."
