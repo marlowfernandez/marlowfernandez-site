@@ -2,12 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import {
-  clampPage,
-  pageCount as computePageCount,
-  pageIndex as computePageIndex,
-  pageOffset,
-} from './slider-paging';
+import { clampPage, columnOffsets, nearestPage } from './slider-paging';
 
 /**
  * Horizontal pagination for one employer's achievement bullets.
@@ -83,7 +78,15 @@ export function BulletSlider({
   className,
 }: BulletSliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState(1);
+  /**
+   * Measured start position of each column, not a computed multiple.
+   *
+   * `page * clientWidth` was the original model and it was wrong: `column-gap`
+   * sits between columns and grid rounds its own track sizing, which on the
+   * real layout put columns 48px further apart than the formula assumed. The
+   * error compounded, so page four sat 144px off and looked shoved sideways.
+   */
+  const [columns, setColumns] = useState<number[]>([0]);
   const [page, setPage] = useState(0);
   /**
    * Whether the current page change should be announced.
@@ -104,10 +107,15 @@ export function BulletSlider({
     // config, and it is right to be: a synchronous setState here would be a
     // second render pass on every mount. ResizeObserver fires once on
     // `observe()`, which covers the initial measurement for free.
-    const resize = new ResizeObserver(() => {
-      setPages(computePageCount(track.scrollWidth, track.clientWidth));
-      setPage(computePageIndex(track.scrollLeft, track.clientWidth));
-    });
+    const measure = () => {
+      const items = [...track.querySelectorAll<HTMLElement>('.slider-bullet')];
+      const offsets = columnOffsets(items, ROWS_PER_PAGE);
+      setColumns(offsets);
+      setPage(nearestPage(offsets, track.scrollLeft));
+      return offsets;
+    };
+
+    const resize = new ResizeObserver(measure);
     resize.observe(track);
 
     let frame = 0;
@@ -115,7 +123,16 @@ export function BulletSlider({
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         setAnnounce(false);
-        setPage(computePageIndex(track.scrollLeft, track.clientWidth));
+        setPage((current) => {
+          const items = [
+            ...track.querySelectorAll<HTMLElement>('.slider-bullet'),
+          ];
+          const next = nearestPage(
+            columnOffsets(items, ROWS_PER_PAGE),
+            track.scrollLeft,
+          );
+          return next === current ? current : next;
+        });
       });
     };
     track.addEventListener('scroll', onScroll, { passive: true });
@@ -132,7 +149,7 @@ export function BulletSlider({
       const track = trackRef.current;
       if (track === null) return;
 
-      const next = clampPage(target, pages);
+      const next = clampPage(target, columns.length);
       // Already at the end: do nothing rather than disabling the button. A
       // `disabled` button loses focus the moment it disables, which strands a
       // reader who was clicking through to the last page.
@@ -144,15 +161,16 @@ export function BulletSlider({
         typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // Absolute target, never scrollBy — Safari's snap implementation lands
-      // relative scrolls unpredictably.
+      // The measured column start, never a computed multiple, and absolute
+      // rather than relative — Safari's snap implementation lands `scrollBy`
+      // unpredictably.
       track.scrollTo({
-        left: pageOffset(next, track.clientWidth),
+        left: columns[next] ?? 0,
         behavior: reduceMotion ? 'auto' : 'smooth',
       });
       setPage(next);
     },
-    [page, pages],
+    [columns, page],
   );
 
   const trackId = `bullets-${index}`;
@@ -160,8 +178,8 @@ export function BulletSlider({
   // names contain punctuation and parentheses that make for fragile ids.
 
   const atStart = page <= 0;
-  const atEnd = page >= pages - 1;
-  const paginated = pages > 1;
+  const atEnd = page >= columns.length - 1;
+  const paginated = columns.length > 1;
 
   return (
     <div
@@ -224,14 +242,14 @@ export function BulletSlider({
             </button>
 
             <span className="slider-dots">
-              {Array.from({ length: pages }, (_, dot) => (
+              {Array.from({ length: columns.length }, (_, dot) => (
                 <button
                   key={dot}
                   type="button"
                   onClick={() => goTo(dot)}
                   aria-controls={trackId}
                   aria-current={dot === page}
-                  aria-label={`Achievements page ${dot + 1} of ${pages}, ${employer}`}
+                  aria-label={`Achievements page ${dot + 1} of ${columns.length}, ${employer}`}
                   className="slider-dot"
                   data-active={dot === page}
                 />
@@ -259,7 +277,7 @@ export function BulletSlider({
         focus from the button the reader is about to press again.
       */}
       <p className="sr-only" aria-live="polite" data-testid="bullet-status">
-        {paginated && announce ? `Page ${page + 1} of ${pages}` : ''}
+        {paginated && announce ? `Page ${page + 1} of ${columns.length}` : ''}
       </p>
     </div>
   );

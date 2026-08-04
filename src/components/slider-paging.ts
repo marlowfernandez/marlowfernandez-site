@@ -20,33 +20,40 @@
  */
 
 /**
- * How many full-width pages the track holds.
+ * Which page a scroll offset is showing, given the real column positions.
  *
- * Returns at least `1` always. A slider with one page renders no controls at
- * all, so "no pages" and "one page" must collapse to the same answer — and the
- * `clientWidth === 0` guard is what keeps that true during the window between
- * mount and first measurement, where the honest answer would be a division by
- * zero.
+ * ## Why this takes measured offsets instead of computing them
+ *
+ * The obvious model — `page * clientWidth` — is wrong, and was shipped wrong.
+ * A column is not `clientWidth` apart from the next one: `column-gap` sits
+ * between them, and grid resolves `grid-auto-columns: 100%` against the
+ * container's content box, which sub-pixel rounding can shift again.
+ *
+ * Measured on the real layout, columns were **48px** further apart than the
+ * formula assumed. That error compounds per page, so by page four the content
+ * was displaced 144px and visibly pushed off to one side.
+ *
+ * Reading `offsetLeft` off the actual column starts cannot drift from the
+ * layout, because it *is* the layout. This is the same lesson as the
+ * Lighthouse glob and the employer type ramp: measure the real thing rather
+ * than model it.
  */
-export function pageCount(scrollWidth: number, clientWidth: number): number {
-  if (!Number.isFinite(scrollWidth) || !Number.isFinite(clientWidth)) return 1;
-  if (clientWidth <= 0) return 1;
-  // Round rather than ceil: sub-pixel layout routinely leaves scrollWidth a
-  // fraction over an exact multiple, and `ceil` would turn that rounding dust
-  // into a whole extra page containing nothing.
-  return Math.max(1, Math.round(scrollWidth / clientWidth));
-}
+export function nearestPage(offsets: number[], scrollLeft: number): number {
+  if (offsets.length === 0) return 0;
+  if (!Number.isFinite(scrollLeft)) return 0;
 
-/**
- * Which page a given scroll offset is showing.
- *
- * Rounds to the nearest page, so a track left mid-drag between two snap points
- * reports the one it is closest to rather than always the one behind.
- */
-export function pageIndex(scrollLeft: number, clientWidth: number): number {
-  if (!Number.isFinite(scrollLeft) || !Number.isFinite(clientWidth)) return 0;
-  if (clientWidth <= 0) return 0;
-  return Math.max(0, Math.round(scrollLeft / clientWidth));
+  let best = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  offsets.forEach((offset, index) => {
+    const distance = Math.abs(offset - scrollLeft);
+    // Strict `<` keeps the earlier column when a position is exactly between
+    // two, which matches how `scroll-snap-align: start` resolves a tie.
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = index;
+    }
+  });
+  return best;
 }
 
 /**
@@ -63,13 +70,29 @@ export function clampPage(next: number, count: number): number {
 }
 
 /**
- * The scroll offset that puts `page` at the start of the track.
+ * Column start positions, taken from the first item in each column.
  *
- * Absolute, never relative. Safari's scroll-snap implementation interacts
- * unpredictably with `scrollBy`, landing a snap point short or overshooting;
- * an absolute `scrollTo` target is unambiguous.
+ * With `grid-auto-flow: column` and N rows, items `0`, `N`, `2N`… are the
+ * top-left cell of each column, so their `offsetLeft` is that column's scroll
+ * position. Items are measured rather than counted, so a column that reflows
+ * cannot desynchronise the paging.
+ *
+ * Duplicate offsets are collapsed: below the `tablet` breakpoint the grid is
+ * disabled entirely and every item reports the same `offsetLeft`, which must
+ * read as one page rather than four.
  */
-export function pageOffset(page: number, clientWidth: number): number {
-  if (!Number.isFinite(page) || !Number.isFinite(clientWidth)) return 0;
-  return Math.max(0, page) * Math.max(0, clientWidth);
+export function columnOffsets(
+  items: readonly { offsetLeft: number }[],
+  rows: number,
+): number[] {
+  if (items.length === 0 || rows < 1) return [0];
+
+  const offsets: number[] = [];
+  for (let index = 0; index < items.length; index += rows) {
+    const offset = items[index]?.offsetLeft ?? 0;
+    if (offsets.length === 0 || offset > (offsets.at(-1) as number)) {
+      offsets.push(offset);
+    }
+  }
+  return offsets.length === 0 ? [0] : offsets;
 }

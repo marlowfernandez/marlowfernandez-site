@@ -1,65 +1,100 @@
 import { describe, expect, it } from 'vitest';
 
-import { clampPage, pageCount, pageIndex, pageOffset } from './slider-paging';
+import { clampPage, columnOffsets, nearestPage } from './slider-paging';
 
 /**
- * Pure arithmetic, so these run without a DOM and without React.
+ * Pure functions, so these run without a DOM and without React.
  *
- * The cases that matter are the degenerate ones. jsdom reports `clientWidth`
- * as `0` for every element, and a real browser reports `0` for one frame
- * between mount and first layout — so "zero width" is not a hypothetical
- * input here, it is the state the component starts in.
+ * These replaced an earlier trio built on `page * clientWidth`. That model was
+ * shipped and was wrong: columns sit `column-gap` apart and grid rounds its own
+ * track sizing, so on the real layout they were 48px further apart than the
+ * formula assumed. The error compounded — page four landed 144px off and
+ * visibly pushed the content sideways. The tests for that model all passed,
+ * because they tested the arithmetic rather than the layout.
+ *
+ * Hence the shape here: `columnOffsets` takes measurements as input rather
+ * than deriving them, so the component reads reality instead of predicting it.
  */
 
-describe('pageCount', () => {
-  it('counts whole pages', () => {
-    expect(pageCount(1200, 300)).toBe(4);
-    expect(pageCount(300, 300)).toBe(1);
-    expect(pageCount(900, 300)).toBe(3);
+/** Minimal stand-in for the one property `columnOffsets` reads. */
+const items = (...offsets: number[]) =>
+  offsets.map((offsetLeft) => ({ offsetLeft }));
+
+describe('columnOffsets', () => {
+  it('takes the first item of each column', () => {
+    // 8 bullets, 4 rows: two columns starting at 0 and 616.
+    expect(columnOffsets(items(0, 0, 0, 0, 616, 616, 616, 616), 4)).toEqual([
+      0, 616,
+    ]);
   });
 
-  it('returns 1 rather than dividing by zero before first layout', () => {
-    // The jsdom case, and the first-frame case in a real browser. A slider
-    // reporting 0 pages would render a control row with no dots in it.
-    expect(pageCount(0, 0)).toBe(1);
-    expect(pageCount(1200, 0)).toBe(1);
-    expect(pageCount(1200, -50)).toBe(1);
+  it('does not assume columns are one client width apart', () => {
+    // The regression this file exists for. Uneven spacing must survive
+    // verbatim — no rounding to a multiple, no averaging.
+    expect(columnOffsets(items(0, 0, 616, 616, 1240, 1240), 2)).toEqual([
+      0, 616, 1240,
+    ]);
   });
 
-  it('ignores sub-pixel rounding dust instead of inventing a page', () => {
-    // Fractional layout routinely leaves scrollWidth a hair over an exact
-    // multiple. `Math.ceil` would turn 1200.4 into a fifth, empty page.
-    expect(pageCount(1200.4, 300)).toBe(4);
-    expect(pageCount(1199.6, 300)).toBe(4);
+  it('collapses to one page when every item shares an offset', () => {
+    // Below the tablet breakpoint the grid is disabled and the list is a plain
+    // vertical stack, so every item reports offsetLeft 0. That is one page,
+    // not four, and a slider with one page renders no controls at all.
+    expect(columnOffsets(items(0, 0, 0, 0, 0, 0), 4)).toEqual([0]);
   });
 
-  it('survives non-finite input', () => {
-    expect(pageCount(Number.NaN, 300)).toBe(1);
-    expect(pageCount(Number.POSITIVE_INFINITY, 300)).toBe(1);
+  it('handles a partial final column', () => {
+    // 6 bullets across 4 rows: the second column holds two.
+    expect(columnOffsets(items(0, 0, 0, 0, 616, 616), 4)).toEqual([0, 616]);
+  });
+
+  it('is defined for degenerate input', () => {
+    expect(columnOffsets([], 4)).toEqual([0]);
+    expect(columnOffsets(items(0, 100), 0)).toEqual([0]);
   });
 });
 
-describe('pageIndex', () => {
-  it('maps an offset to its page', () => {
-    expect(pageIndex(0, 300)).toBe(0);
-    expect(pageIndex(300, 300)).toBe(1);
-    expect(pageIndex(900, 300)).toBe(3);
+describe('nearestPage', () => {
+  const offsets = [0, 616, 1240, 1856];
+
+  it('maps an exact column start to its page', () => {
+    expect(nearestPage(offsets, 0)).toBe(0);
+    expect(nearestPage(offsets, 616)).toBe(1);
+    expect(nearestPage(offsets, 1856)).toBe(3);
   });
 
-  it('rounds to the nearest page mid-drag', () => {
-    // 610 is just past the midpoint between page 1 and page 2, so the reader
-    // is looking mostly at page 2.
-    expect(pageIndex(610, 300)).toBe(2);
-    expect(pageIndex(440, 300)).toBe(1);
+  it('rounds to the closest column mid-drag', () => {
+    expect(nearestPage(offsets, 600)).toBe(1);
+    expect(nearestPage(offsets, 400)).toBe(1);
+    expect(nearestPage(offsets, 260)).toBe(0);
   });
 
-  it('never returns a negative page from overscroll bounce', () => {
-    expect(pageIndex(-40, 300)).toBe(0);
+  it('keeps the earlier column on an exact tie', () => {
+    // Matches how `scroll-snap-align: start` resolves a tie.
+    expect(nearestPage(offsets, 308)).toBe(0);
   });
 
-  it('returns 0 with no measurable width', () => {
-    expect(pageIndex(500, 0)).toBe(0);
-    expect(pageIndex(Number.NaN, 300)).toBe(0);
+  it('clamps rather than extrapolating past either end', () => {
+    // Overscroll bounce produces both of these.
+    expect(nearestPage(offsets, -80)).toBe(0);
+    expect(nearestPage(offsets, 99999)).toBe(3);
+  });
+
+  it('is defined for degenerate input', () => {
+    expect(nearestPage([], 500)).toBe(0);
+    expect(nearestPage(offsets, Number.NaN)).toBe(0);
+  });
+
+  it('round-trips with columnOffsets', () => {
+    // The property that matters: scrolling to a measured column start and
+    // reading the position back must name the same page.
+    const measured = columnOffsets(
+      items(0, 0, 616, 616, 1240, 1240, 1856, 1856),
+      2,
+    );
+    measured.forEach((offset, page) => {
+      expect(nearestPage(measured, offset)).toBe(page);
+    });
   });
 });
 
@@ -81,25 +116,5 @@ describe('clampPage', () => {
     expect(clampPage(0, 1)).toBe(0);
     expect(clampPage(3, 1)).toBe(0);
     expect(clampPage(0, 0)).toBe(0);
-  });
-});
-
-describe('pageOffset', () => {
-  it('gives an absolute scroll target', () => {
-    expect(pageOffset(0, 300)).toBe(0);
-    expect(pageOffset(2, 300)).toBe(600);
-  });
-
-  it('never targets a negative offset', () => {
-    expect(pageOffset(-2, 300)).toBe(0);
-    expect(pageOffset(2, -300)).toBe(0);
-  });
-
-  it('round-trips with pageIndex', () => {
-    // The property that actually matters: scrolling to a page's offset and
-    // then reading the position back must name the same page.
-    for (const page of [0, 1, 2, 5]) {
-      expect(pageIndex(pageOffset(page, 320), 320)).toBe(page);
-    }
   });
 });

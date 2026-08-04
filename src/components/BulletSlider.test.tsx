@@ -34,28 +34,31 @@ const BULLETS = Array.from(
  * They are installed per-file rather than in `vitest.setup.ts`: a shared stub
  * would silently give every other test a fake layout too.
  */
-let trackClientWidth = 0;
-let trackScrollWidth = 0;
+/**
+ * Simulated column width, in the same spirit as a real layout: columns sit an
+ * arbitrary distance apart, NOT an exact multiple of the track width. The
+ * component must read that distance rather than assume it — a bug that shipped
+ * once, where columns were 48px further apart than `page * clientWidth`
+ * predicted and page four landed 144px off.
+ */
+const COLUMN_PITCH = 616;
+/** Rows per column, matching the component's own constant. */
+const ROWS = 4;
+
+let paginate = false;
 
 beforeEach(() => {
-  trackClientWidth = 0;
-  trackScrollWidth = 0;
+  paginate = false;
 
-  // Keyed on the track's own role, so the stub answers during mount — the
-  // ResizeObserver fires before any test could tag the element afterwards.
-  const isTrack = (node: unknown) =>
-    node instanceof HTMLElement && node.getAttribute('role') === 'group';
-
-  Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+  // `offsetLeft` is what the component measures. jsdom computes no layout and
+  // reports 0 for everything, which correctly reads as "one column"; the
+  // paginated case has to be simulated.
+  Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
     configurable: true,
-    get() {
-      return isTrack(this) ? trackClientWidth : 0;
-    },
-  });
-  Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {
-    configurable: true,
-    get() {
-      return isTrack(this) ? trackScrollWidth : 0;
+    get(this: HTMLElement) {
+      if (!paginate || !this.classList.contains('slider-bullet')) return 0;
+      const siblings = [...(this.parentElement?.children ?? [])];
+      return Math.floor(siblings.indexOf(this) / ROWS) * COLUMN_PITCH;
     },
   });
 
@@ -84,10 +87,9 @@ function renderSlider(bullets: string[] = BULLETS) {
   );
 }
 
-/** Renders with enough simulated width that the track paginates. */
+/** Renders with simulated column positions, so the track paginates. */
 function renderPaginated(bullets: string[] = BULLETS) {
-  trackClientWidth = 300;
-  trackScrollWidth = 1200; // four pages
+  paginate = true;
   return render(
     <BulletSlider bullets={bullets} employer="Point & Pay" index={0} />,
   );
