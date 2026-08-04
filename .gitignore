@@ -103,8 +103,3 @@ next-env.d.ts
 /.pnp
 .pnp.*
 
-# Vendored design reference dropped in from an external site builder. Kept on
-# disk while the redesign is implemented, then deleted along with this entry.
-# Never committed: it is someone else's generated output, and it carries its
-# own package.json/lockfile that would confuse this project's dependency tree.
-/marlow-fernandez-portfolio-source/
