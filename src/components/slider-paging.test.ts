@@ -16,41 +16,35 @@ import { clampPage, columnOffsets, nearestPage } from './slider-paging';
  * than deriving them, so the component reads reality instead of predicting it.
  */
 
-/** Minimal stand-in for the one property `columnOffsets` reads. */
-const items = (...offsets: number[]) =>
-  offsets.map((offsetLeft) => ({ offsetLeft }));
-
 describe('columnOffsets', () => {
   it('takes the first item of each column', () => {
     // 8 bullets, 4 rows: two columns starting at 0 and 616.
-    expect(columnOffsets(items(0, 0, 0, 0, 616, 616, 616, 616), 4)).toEqual([
-      0, 616,
-    ]);
+    expect(columnOffsets([0, 0, 0, 0, 616, 616, 616, 616])).toEqual([0, 616]);
   });
 
   it('does not assume columns are one client width apart', () => {
     // The regression this file exists for. Uneven spacing must survive
     // verbatim — no rounding to a multiple, no averaging.
-    expect(columnOffsets(items(0, 0, 616, 616, 1240, 1240), 2)).toEqual([
-      0, 616, 1240,
-    ]);
+    expect(columnOffsets([0, 0, 616, 616, 1240, 1240])).toEqual([0, 616, 1240]);
   });
 
   it('collapses to one page when every item shares an offset', () => {
     // Below the tablet breakpoint the grid is disabled and the list is a plain
     // vertical stack, so every item reports offsetLeft 0. That is one page,
     // not four, and a slider with one page renders no controls at all.
-    expect(columnOffsets(items(0, 0, 0, 0, 0, 0), 4)).toEqual([0]);
+    expect(columnOffsets([0, 0, 0, 0, 0, 0])).toEqual([0]);
   });
 
   it('handles a partial final column', () => {
     // 6 bullets across 4 rows: the second column holds two.
-    expect(columnOffsets(items(0, 0, 0, 0, 616, 616), 4)).toEqual([0, 616]);
+    expect(columnOffsets([0, 0, 0, 0, 616, 616])).toEqual([0, 616]);
   });
 
   it('is defined for degenerate input', () => {
-    expect(columnOffsets([], 4)).toEqual([0]);
-    expect(columnOffsets(items(0, 100), 0)).toEqual([0]);
+    expect(columnOffsets([])).toEqual([0]);
+    expect(columnOffsets([Number.NaN, Number.POSITIVE_INFINITY])).toEqual([0]);
+    // Sub-pixel layout: two items a fraction apart are the same column.
+    expect(columnOffsets([0, 0.4, 615.6, 616.2])).toEqual([0, 616]);
   });
 });
 
@@ -88,10 +82,7 @@ describe('nearestPage', () => {
   it('round-trips with columnOffsets', () => {
     // The property that matters: scrolling to a measured column start and
     // reading the position back must name the same page.
-    const measured = columnOffsets(
-      items(0, 0, 616, 616, 1240, 1240, 1856, 1856),
-      2,
-    );
+    const measured = columnOffsets([0, 0, 616, 616, 1240, 1240, 1856, 1856]);
     measured.forEach((offset, page) => {
       expect(nearestPage(measured, offset)).toBe(page);
     });

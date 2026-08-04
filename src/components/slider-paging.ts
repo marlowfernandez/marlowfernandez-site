@@ -70,29 +70,33 @@ export function clampPage(next: number, count: number): number {
 }
 
 /**
- * Column start positions, taken from the first item in each column.
+ * Distinct column start positions, from one measurement per item.
  *
- * With `grid-auto-flow: column` and N rows, items `0`, `N`, `2N`… are the
- * top-left cell of each column, so their `offsetLeft` is that column's scroll
- * position. Items are measured rather than counted, so a column that reflows
- * cannot desynchronise the paging.
+ * ## Two mistakes are baked out of this signature
  *
- * Duplicate offsets are collapsed: below the `tablet` breakpoint the grid is
- * disabled entirely and every item reports the same `offsetLeft`, which must
- * read as one page rather than four.
+ * It takes **scroll-origin offsets**, not elements. An earlier version read
+ * `offsetLeft`, which is relative to `offsetParent` — and the offsetParent
+ * here is the positioned `.panel`, not the scroll container. Every value
+ * carried the panel's 16px padding, which put each column start 16px past
+ * where the track could actually scroll: `maxScrollLeft` was 601 while the
+ * last column claimed to start at 616, so the browser clamped and left every
+ * final column short. The caller must supply
+ * `rect.left - trackRect.left + track.scrollLeft`.
+ *
+ * It takes **every item**, not every Nth. Deriving columns from a fixed row
+ * count assumes the layout packs a known number of items per column; taking
+ * distinct positions instead works for any layout, including one where items
+ * per column vary with their own height.
+ *
+ * Collapsing to a single entry is the correct answer below the `tablet`
+ * breakpoint, where the list is a plain vertical stack and every item shares
+ * one x — that is one page, and a one-page slider renders no controls.
  */
-export function columnOffsets(
-  items: readonly { offsetLeft: number }[],
-  rows: number,
-): number[] {
-  if (items.length === 0 || rows < 1) return [0];
-
-  const offsets: number[] = [];
-  for (let index = 0; index < items.length; index += rows) {
-    const offset = items[index]?.offsetLeft ?? 0;
-    if (offsets.length === 0 || offset > (offsets.at(-1) as number)) {
-      offsets.push(offset);
-    }
+export function columnOffsets(itemOffsets: readonly number[]): number[] {
+  const distinct = new Set<number>();
+  for (const offset of itemOffsets) {
+    if (Number.isFinite(offset)) distinct.add(Math.round(offset));
   }
-  return offsets.length === 0 ? [0] : offsets;
+  if (distinct.size === 0) return [0];
+  return [...distinct].sort((a, b) => a - b);
 }

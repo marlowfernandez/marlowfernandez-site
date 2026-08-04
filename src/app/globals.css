@@ -691,36 +691,42 @@
    * semantics, no per-page wrapper elements.
    */
   .slider-pages {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 100%;
-    grid-template-rows: repeat(var(--slider-rows, 4), min-content);
-    column-gap: var(--spacing-md);
-    row-gap: var(--spacing-xs);
+    display: flex;
+    flex-flow: column wrap;
+    align-content: flex-start;
+    /*
+     * A definite height is what makes column wrapping possible at all, and it
+     * is also what sets the page count: taller columns hold more bullets, so
+     * this is the one number trading scrolling against clicking.
+     *
+     * Viewport-relative with a cap. `vh` keeps it proportionate on tall
+     * displays; the `rem` ceiling stops a very tall window from stretching one
+     * column past comfortable reading. Measured against the real scene, which
+     * had 381px of unused vertical space at 22rem — enough to nearly halve
+     * Point & Pay's page count without the scene outgrowing its viewport,
+     * which mandatory snapping depends on.
+     */
+    height: var(--slider-height, min(54vh, 32rem));
+    gap: var(--spacing-xs) var(--spacing-md);
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  .slider-pages > li {
+    /* One column is exactly one track width. */
+    width: 100%;
+    flex: 0 0 auto;
   }
 
   .slider-bullet {
     scroll-snap-align: start;
     min-width: 0;
     /*
-     * A hairline at the row boundary, which is what makes the vertical rhythm
-     * read as even.
-     *
-     * `grid-auto-flow: column` shares row heights across every column — row 3
-     * is as tall as the tallest of bullets 3, 7, 11 and 15 — so a short bullet
-     * beside a long one leaves dead space below it. Rows are inherently shared
-     * in grid, and packing per column would mean either nested lists or
-     * multi-column layout, the first breaking the flat `<ol>` and the second
-     * losing scroll snap.
-     *
-     * A grid item stretches to fill its row by default, so a bottom border
-     * lands exactly on the row boundary — the same distance apart in every
-     * column. The uneven whitespace becomes evenly-ruled cells, which reads as
-     * structure rather than as inconsistent spacing. The reference separates
-     * its wins the same way.
+     * A hairline under each bullet. With column-wrap packing these sit
+     * directly under their own content, so the rhythm follows the text rather
+     * than a shared skeleton — which is what removes the dead space that a
+     * grid's shared row heights forced below short bullets.
      */
     border-block-end: 1px solid var(--token-hairline);
     padding-block-end: var(--spacing-xs);

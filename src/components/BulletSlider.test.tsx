@@ -50,15 +50,36 @@ let paginate = false;
 beforeEach(() => {
   paginate = false;
 
-  // `offsetLeft` is what the component measures. jsdom computes no layout and
-  // reports 0 for everything, which correctly reads as "one column"; the
-  // paginated case has to be simulated.
-  Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
+  /*
+   * The component measures `getBoundingClientRect().left` relative to the
+   * track, NOT `offsetLeft` — `offsetLeft` is relative to `offsetParent`,
+   * which in the real layout is the positioned `.panel`, so it carried the
+   * panel's padding and pointed past where the track could scroll.
+   *
+   * Stubbing the same call the component makes is the point: a stub of
+   * `offsetLeft` would keep passing while the component measured something
+   * else entirely.
+   */
+  Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
     configurable: true,
-    get(this: HTMLElement) {
-      if (!paginate || !this.classList.contains('slider-bullet')) return 0;
-      const siblings = [...(this.parentElement?.children ?? [])];
-      return Math.floor(siblings.indexOf(this) / ROWS) * COLUMN_PITCH;
+    writable: true,
+    value(this: HTMLElement): DOMRect {
+      let left = 0;
+      if (paginate && this.classList.contains('slider-bullet')) {
+        const siblings = [...(this.parentElement?.children ?? [])];
+        left = Math.floor(siblings.indexOf(this) / ROWS) * COLUMN_PITCH;
+      }
+      return {
+        x: left,
+        y: 0,
+        left,
+        top: 0,
+        right: left,
+        bottom: 0,
+        width: 0,
+        height: 0,
+        toJSON: () => ({}),
+      } as DOMRect;
     },
   });
 

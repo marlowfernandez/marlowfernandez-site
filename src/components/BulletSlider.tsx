@@ -66,10 +66,25 @@ export interface BulletSliderProps {
 }
 
 /**
- * Rows per page. Four keeps Point & Pay at four pages and every other employer
- * at one or two, so no scene turns into a slideshow.
+ * Every bullet's left edge, expressed as the scroll position that would bring
+ * it flush with the track's left edge.
+ *
+ * Deliberately NOT `offsetLeft`. That is measured from `offsetParent`, which
+ * here is the positioned `.panel` rather than the scroll container — so every
+ * value carried the panel's 16px padding and pointed 16px past where the track
+ * could actually scroll. `maxScrollLeft` was 601 while the last column claimed
+ * to start at 616, the browser clamped, and every final column sat short of
+ * the edge.
+ *
+ * A rect difference plus the current `scrollLeft` is immune to which ancestor
+ * happens to be positioned.
  */
-const ROWS_PER_PAGE = 4;
+function measureColumns(track: HTMLElement): number[] {
+  const trackLeft = track.getBoundingClientRect().left;
+  return [...track.querySelectorAll<HTMLElement>('.slider-bullet')].map(
+    (item) => item.getBoundingClientRect().left - trackLeft + track.scrollLeft,
+  );
+}
 
 export function BulletSlider({
   bullets,
@@ -108,11 +123,9 @@ export function BulletSlider({
     // second render pass on every mount. ResizeObserver fires once on
     // `observe()`, which covers the initial measurement for free.
     const measure = () => {
-      const items = [...track.querySelectorAll<HTMLElement>('.slider-bullet')];
-      const offsets = columnOffsets(items, ROWS_PER_PAGE);
+      const offsets = columnOffsets(measureColumns(track));
       setColumns(offsets);
       setPage(nearestPage(offsets, track.scrollLeft));
-      return offsets;
     };
 
     const resize = new ResizeObserver(measure);
@@ -123,14 +136,9 @@ export function BulletSlider({
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         setAnnounce(false);
+        const offsets = columnOffsets(measureColumns(track));
         setPage((current) => {
-          const items = [
-            ...track.querySelectorAll<HTMLElement>('.slider-bullet'),
-          ];
-          const next = nearestPage(
-            columnOffsets(items, ROWS_PER_PAGE),
-            track.scrollLeft,
-          );
+          const next = nearestPage(offsets, track.scrollLeft);
           return next === current ? current : next;
         });
       });
@@ -201,11 +209,7 @@ export function BulletSlider({
         tabIndex={0}
         className="slider-track"
       >
-        <ol
-          data-testid="role-bullets"
-          className="slider-pages"
-          style={{ '--slider-rows': ROWS_PER_PAGE } as React.CSSProperties}
-        >
+        <ol data-testid="role-bullets" className="slider-pages">
           {bullets.map((bullet) => (
             <li key={bullet} className="slider-bullet">
               {bullet}
