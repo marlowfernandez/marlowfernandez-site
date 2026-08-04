@@ -114,10 +114,18 @@ export type AIEngineeringItem = string;
 export interface ContactInfo {
   email: string;
   /**
-   * Rendered as plain text, not a `tel:` link — confirmed at
-   * requirements-analysis Q1.
+   * Optional as of the redesign, and currently unset.
+   *
+   * requirements-analysis Q1 decided the phone number would be published as
+   * plain text rather than a `tel:` link. That decision was reversed: it is no
+   * longer rendered anywhere, and the value has been removed from
+   * `contact.mdx` rather than left in the file unused.
+   *
+   * Kept in the schema as optional rather than deleted outright, so the
+   * decision is reversible without a schema migration — and so this note has
+   * somewhere to live.
    */
-  phone: string;
+  phone?: string;
   /** Absolute `https://` URL to the LinkedIn profile. */
   linkedInUrl: string;
 }
@@ -545,8 +553,8 @@ function checkContactInfo(
 
   return {
     email,
-    phone: checker.string(entry, 'phone', `${path}.phone`),
     linkedInUrl,
+    ...maybe('phone', checker.optionalString(entry, 'phone', `${path}.phone`)),
   };
 }
 

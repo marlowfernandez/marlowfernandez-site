@@ -56,7 +56,7 @@ export default function HomePage() {
         */}
         <Hero name={hero.name} tagline={hero.tagline} />
 
-        <div className="mx-auto w-full max-w-5xl px-gutter">
+        <div className="mx-auto w-full max-w-[1800px] px-gutter">
           <AIEngineeringSection
             heading={aiEngineering.heading}
             items={aiEngineering.items}

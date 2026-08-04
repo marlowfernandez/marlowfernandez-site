@@ -309,9 +309,19 @@
   --text-display: clamp(3.25rem, 8.5vw, 8.25rem);
   --text-display--line-height: 0.82;
   --text-display--letter-spacing: -0.075em;
-  --text-scene: clamp(2.5rem, 6.2vw, 5.5rem);
-  --text-scene--line-height: 0.9;
-  --text-scene--letter-spacing: -0.06em;
+  /*
+   * Employer names. Deliberately much smaller than the reference's equivalent
+   * (which topped out around 104px), because the reference's content is not
+   * this content: its longest company name is "Point & Pay", while the real
+   * data includes "Syzygy Integration (Department of Homeland Security
+   * Contract)". At display scale that wrapped to five lines and swamped its
+   * own scene.
+   *
+   * The ceiling is what matters here — the floor was never the problem.
+   */
+  --text-scene: clamp(1.75rem, 2.6vw, 2.75rem);
+  --text-scene--line-height: 1.02;
+  --text-scene--letter-spacing: -0.03em;
   --text-lede: clamp(1.375rem, 2.15vw, 2.25rem);
   --text-lede--line-height: 1.12;
   --text-lede--letter-spacing: -0.035em;
@@ -614,6 +624,13 @@
   .slider-bullet {
     scroll-snap-align: start;
     min-width: 0;
+    /*
+     * Caps line length independently of the container. The shell is
+     * deliberately wide so the page fills a large display, but prose set to
+     * 1200px of measure is unreadable — around 70 characters is the usable
+     * ceiling, and this keeps the two concerns separate.
+     */
+    max-width: 72ch;
     padding-inline-start: var(--spacing-sm);
     position: relative;
     color: var(--token-text-primary);

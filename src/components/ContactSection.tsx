@@ -72,14 +72,16 @@ export function ContactSection({
           </a>
         </li>
 
-        <li>
-          <span
-            data-testid="contact-phone"
-            className={`${ITEM_CLASS} text-text-primary`}
-          >
-            {contactInfo.phone}
-          </span>
-        </li>
+        {contactInfo.phone === undefined ? null : (
+          <li>
+            <span
+              data-testid="contact-phone"
+              className={`${ITEM_CLASS} text-text-primary`}
+            >
+              {contactInfo.phone}
+            </span>
+          </li>
+        )}
 
         <li>
           <ExternalLink

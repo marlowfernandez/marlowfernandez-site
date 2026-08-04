@@ -50,7 +50,7 @@ export function Hero({ name, tagline }: HeroProps) {
       {/* Decorative: the accent wash behind the name. */}
       <span aria-hidden="true" className="scene-glow" />
 
-      <div className="mx-auto w-full max-w-5xl">
+      <div className="mx-auto w-full max-w-[1800px]">
         <p className="flex items-center gap-xs text-label font-extrabold text-text-tertiary uppercase">
           <span aria-hidden="true" className="availability-dot" />
           Software Engineering Leader

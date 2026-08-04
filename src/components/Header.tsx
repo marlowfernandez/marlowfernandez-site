@@ -1,17 +1,33 @@
+import { LinkedInIcon, MailIcon } from '@/components/ContactIcons';
 import { ExternalLink } from '@/components/ExternalLink';
-import { LinkedInIcon, MailIcon, PhoneIcon } from '@/components/ContactIcons';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import type { ContactInfo } from '@/content/schema';
 
 /**
- * Top bar: name, contact glyphs, theme toggle.
+ * Top bar: monogram, contact glyphs, theme toggle.
  *
  * Server component. It composes `ThemeToggle` but owns none of its state
  * (`components.md`, Component Boundaries) — it only provides layout.
  *
- * The name is deliberately not a link: Direction C is a single page with no
+ * ## Monogram, not the full name
+ *
+ * The header used to repeat "Marlow Fernandez" directly above the hero's `h1`,
+ * which said the same thing twice within a single viewport. It now shows the
+ * initials.
+ *
+ * The full name stays available to assistive technology through the `title`
+ * on the abbreviation, so nothing is lost to a screen reader — the change is
+ * visual density, not information.
+ *
+ * The monogram is deliberately not a link: this is a single page with no
  * navigation, so a self-link would be a control that does nothing
  * (`mockups.md`, Header).
+ *
+ * ## No phone number
+ *
+ * Removed at the redesign, along with its entry in `contact.mdx`. See the note
+ * on `ContactInfo.phone` — and note that removing it from `HEAD` does not
+ * remove it from the public repository's history.
  *
  * The `banner` landmark comes from `<header>` being a direct child of `<body>`
  * in `layout.tsx`; no explicit `role` is needed and adding one would be
@@ -20,6 +36,15 @@ import type { ContactInfo } from '@/content/schema';
 export interface HeaderProps {
   name: string;
   contactInfo: ContactInfo;
+}
+
+/** "Marlow Fernandez" -> "MF". Falls back to whatever initials exist. */
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter((part) => part.length > 0)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 }
 
 export function Header({ name, contactInfo }: HeaderProps) {
@@ -33,17 +58,18 @@ export function Header({ name, contactInfo }: HeaderProps) {
        */
       className="glass sticky top-0 z-50 border-b border-hairline"
     >
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-sm gap-y-xs px-gutter py-xs">
-        <span
-          className="text-body font-extrabold tracking-tight text-text-primary"
+      <div className="mx-auto flex w-full max-w-[1800px] flex-wrap items-center justify-between gap-x-sm gap-y-xs px-gutter py-xs">
+        <abbr
+          className="text-body font-extrabold tracking-tight text-text-primary no-underline"
           data-testid="header-name"
+          title={name}
         >
-          {name}
+          {initialsOf(name)}
           {/* Decorative full stop in the accent, per the reference's monogram. */}
           <span aria-hidden="true" className="text-accent-section">
             .
           </span>
-        </span>
+        </abbr>
 
         <div className="flex flex-wrap items-center gap-x-sm gap-y-xs">
           <ContactItem
@@ -51,18 +77,6 @@ export function Header({ name, contactInfo }: HeaderProps) {
             href={`mailto:${contactInfo.email}`}
             value={contactInfo.email}
             testId="header-email"
-          />
-
-          {/*
-            Phone is plain text, not a `tel:` link — confirmed at
-            requirements-analysis Q1. It is still a real text node in the DOM,
-            which is what `accessibility-checklist.md` asks for ("readable as
-            plain text, not embedded in an image").
-          */}
-          <ContactItem
-            icon={<PhoneIcon />}
-            value={contactInfo.phone}
-            testId="header-phone"
           />
 
           <span className="inline-flex items-center gap-xs text-meta">

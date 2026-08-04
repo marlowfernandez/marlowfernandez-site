@@ -18,7 +18,7 @@ export function Footer() {
       data-testid="site-footer"
       className="mt-lg border-t border-border bg-surface"
     >
-      <div className="mx-auto w-full max-w-5xl px-sm py-sm text-meta text-text-secondary">
+      <div className="mx-auto w-full max-w-[1800px] px-gutter py-sm text-meta text-text-secondary">
         <p>&copy; {year} Marlow Fernandez</p>
       </div>
     </footer>

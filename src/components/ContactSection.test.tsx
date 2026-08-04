@@ -32,10 +32,23 @@ describe('ContactSection — rendering', () => {
     expect(email).toHaveTextContent('someone@example.invalid');
   });
 
-  it('leaves phone as plain text rather than a tel: link', () => {
+  it('omits the phone entirely when the content carries none', () => {
+    // The shipped state: `contact.mdx` no longer sets a phone number, and the
+    // schema makes it optional. Nothing should render, and nothing should
+    // render an empty tile in its place.
+    const { phone: _omitted, ...withoutPhone } = fixture;
+    render(<ContactSection heading="Say hello" contactInfo={withoutPhone} />);
+
+    expect(screen.queryByTestId('contact-phone')).toBeNull();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+  });
+
+  it('still renders a phone as plain text if one is ever restored', () => {
+    // The reversal is reversible. requirements-analysis Q1's original
+    // constraint — plain text, never a `tel:` link — still applies to the
+    // rendering path, so it stays asserted rather than deleted with the data.
     render(<ContactSection heading="Say hello" contactInfo={fixture} />);
 
-    // requirements-analysis Q1.
     const phone = screen.getByTestId('contact-phone');
     expect(phone.tagName).toBe('SPAN');
     expect(phone).toHaveTextContent('000-000-0000');
@@ -91,7 +104,6 @@ describe('ContactSection and Header cannot drift', () => {
       <Header name="Marlow Fernandez" contactInfo={shared} />,
     );
     const headerEmail = screen.getByTestId('header-email').getAttribute('href');
-    const headerPhone = screen.getByTestId('header-phone').textContent;
     const headerLinkedIn = screen
       .getByRole('link', { name: /LinkedIn/ })
       .getAttribute('href');
@@ -102,7 +114,6 @@ describe('ContactSection and Header cannot drift', () => {
     expect(screen.getByTestId('contact-email').getAttribute('href')).toBe(
       headerEmail,
     );
-    expect(screen.getByTestId('contact-phone').textContent).toBe(headerPhone);
     expect(
       screen.getByRole('link', { name: /LinkedIn/ }).getAttribute('href'),
     ).toBe(headerLinkedIn);

@@ -3,7 +3,6 @@ section: contact
 heading: Say hello
 contact:
   email: marlowf@icloud.com
-  phone: 386-627-6447
   linkedInUrl: https://linkedin.com/in/marlowf
 ---
 
@@ -15,7 +14,12 @@ the end-of-page call-to-action from drifting apart. `page.tsx` passes the same
 `contact.contact` value to both, and `ContactSection.test.tsx` asserts the two
 render identical values from a single source.
 
-The phone number is published as plain text rather than a `tel:` link, and is
-knowingly public: `requirements.md` Q1 confirms the display choice and its
-Assumptions section records that permanent public visibility on a public
-GitHub-hosted site was an explicit, informed decision.
+**The phone number was removed at the redesign.** `requirements.md` Q1 had
+confirmed publishing it as plain text, and its Assumptions section recorded
+that permanent public visibility was an explicit, informed decision. That
+decision was reversed — the field is now optional in the schema and unset
+here, so the number appears nowhere on the site.
+
+Note for anyone auditing this: removing it from this file removes it from
+`HEAD`, **not from the repository's history**. It was committed to a public
+repo and remains readable in earlier commits. Treat it as public.

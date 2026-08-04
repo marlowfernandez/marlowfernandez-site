@@ -38,26 +38,48 @@ describe('Header', () => {
     expect(screen.getByRole('banner')).toBeInTheDocument();
   });
 
-  it('shows the name without turning it into a link', () => {
+  it('shows a monogram, not the full name, and never a link', () => {
     render(<Header name="A Name" contactInfo={contactInfo} />);
 
-    expect(screen.getByTestId('header-name')).toHaveTextContent('A Name');
+    // The header used to repeat the full name directly above the hero's h1 —
+    // the same words twice within one viewport.
+    const monogram = screen.getByTestId('header-name');
+    expect(monogram).toHaveTextContent('AN');
+    expect(monogram.textContent).not.toContain('A Name');
+
+    // Nothing is lost to assistive technology: the expansion stays available
+    // through the abbreviation's title.
+    expect(monogram).toHaveAttribute('title', 'A Name');
+
     // Direction C has no navigation, so a self-link would be a dead control.
-    expect(screen.queryByRole('link', { name: 'A Name' })).toBeNull();
+    expect(screen.queryByRole('link', { name: /A Name|AN/ })).toBeNull();
   });
 
-  it('links email through mailto and leaves phone as plain text', () => {
+  it('links email through mailto', () => {
     render(<Header name="A Name" contactInfo={contactInfo} />);
 
     expect(screen.getByTestId('header-email')).toHaveAttribute(
       'href',
       'mailto:someone@example.invalid',
     );
+  });
 
-    // requirements-analysis Q1: phone is text, not a `tel:` link.
-    const phone = screen.getByTestId('header-phone');
-    expect(phone.tagName).toBe('SPAN');
-    expect(phone).toHaveTextContent('000-000-0000');
+  it('renders no phone number anywhere', () => {
+    // requirements-analysis Q1 had confirmed publishing the number as plain
+    // text; that decision was reversed at the redesign. The field is optional
+    // in the schema and unset in `contact.mdx`, so this asserts the header
+    // does not resurrect it from a fixture that still carries one.
+    render(
+      <Header
+        name="A Name"
+        contactInfo={{ ...contactInfo, phone: '000-000-0000' }}
+      />,
+    );
+
+    expect(screen.queryByTestId('header-phone')).toBeNull();
+    expect(screen.getByTestId('site-header')).not.toHaveTextContent(
+      '000-000-0000',
+    );
   });
 
   it('gives every glyph item a real accessible name', () => {

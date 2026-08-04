@@ -131,9 +131,21 @@ export function ExperienceSection({
             {/* Decorative: the accent wash behind this employer's scene. */}
             <span aria-hidden="true" className="scene-glow" />
 
-            <div className="grid gap-lg desktop:grid-cols-[0.9fr_1.1fr] desktop:items-start">
-              {/* Column one — who and when. */}
-              <div>
+            <div className="grid gap-lg desktop:grid-cols-[0.85fr_1.15fr] desktop:items-start">
+              {/*
+                Column one — who and when.
+
+                Sticky from `desktop:` up, so the employer stays pinned while
+                its achievements scroll past. This is the whole of the
+                "cinematic" feel on a normally-scrolling page: the reader keeps
+                their place in the history instead of losing the company name
+                the moment they start reading the detail.
+
+                Offset clears the sticky header. Not applied below `desktop:` —
+                on a narrow screen the two columns stack, and a sticky element
+                in a stacked layout just eats the viewport.
+              */}
+              <div className="desktop:sticky desktop:top-2xl">
                 <p className="text-label font-extrabold text-accent-section uppercase">
                   <span aria-hidden="true">
                     {String(index + 1).padStart(2, '0')}
