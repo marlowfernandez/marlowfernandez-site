@@ -706,6 +706,25 @@
     scroll-snap-align: start;
     min-width: 0;
     /*
+     * A hairline at the row boundary, which is what makes the vertical rhythm
+     * read as even.
+     *
+     * `grid-auto-flow: column` shares row heights across every column — row 3
+     * is as tall as the tallest of bullets 3, 7, 11 and 15 — so a short bullet
+     * beside a long one leaves dead space below it. Rows are inherently shared
+     * in grid, and packing per column would mean either nested lists or
+     * multi-column layout, the first breaking the flat `<ol>` and the second
+     * losing scroll snap.
+     *
+     * A grid item stretches to fill its row by default, so a bottom border
+     * lands exactly on the row boundary — the same distance apart in every
+     * column. The uneven whitespace becomes evenly-ruled cells, which reads as
+     * structure rather than as inconsistent spacing. The reference separates
+     * its wins the same way.
+     */
+    border-block-end: 1px solid var(--token-hairline);
+    padding-block-end: var(--spacing-xs);
+    /*
      * Caps line length independently of the container. The shell is
      * deliberately wide so the page fills a large display, but prose set to
      * 1200px of measure is unreadable — around 70 characters is the usable
