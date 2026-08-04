@@ -48,8 +48,16 @@ export function Hero({ name, tagline }: HeroProps) {
       className="scene relative px-gutter pt-2xl pb-xl"
       aria-labelledby="hero-name"
     >
-      {/* Decorative: the accent wash behind the name. */}
-      <span aria-hidden="true" className="scene-glow" />
+      {/* Decorative: two drifting light sources behind the name. */}
+      <span
+        aria-hidden="true"
+        className="orb orb-drift right-[-8vw] top-[6vh] w-[min(57vw,760px)]"
+      />
+      <span
+        aria-hidden="true"
+        className="orb bottom-[-14vw] right-[18vw] w-[33vw] opacity-70"
+        style={{ ['--accent' as string]: 'var(--token-accent-violet)' }}
+      />
 
       <div className="mx-auto w-full max-w-[1800px]">
         <p className="flex items-center gap-xs text-label font-extrabold text-text-tertiary uppercase">

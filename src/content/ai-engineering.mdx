@@ -1,20 +1,35 @@
 ---
 section: ai-engineering
 heading: AI Engineering
+summary: >-
+  Since January 2026, building AI governance practice for payment companies
+  through Vynkor — the controls, review standards, and evaluation work a team
+  needs before putting models anywhere near regulated money movement. The
+  proving ground is a set of running proofs of concept rather than a
+  whitepaper.
 items:
+  - AI governance for payments
   - openclaw
-  - LLMs
-  - unsloth
-  - model setups
+  - LiteLLM
+  - frontier model APIs
+  - agent recognition of environment differences via Terraform
+  - local inference with Ollama and llama.cpp
+  - self-hosted Qwen3.6
   - AI-DLC
 ---
 
-This body is not rendered. `AIEngineeringSection` renders the `items`
-frontmatter above, joined into one comma-separated sentence.
+This body is not rendered. `AIEngineeringSection` renders the `summary`
+paragraph and the `items` frontmatter above, the latter joined into one
+comma-separated sentence.
 
-The five items are the exact list ADR-1 settled (`decisions.md`, "AI Engineering
-Section Format"). Two constraints ride on this file and are easy to break by
-accident:
+## What changed, and what did not
+
+The section was expanded at the redesign because one comma-separated line of
+five words read as bare next to the rest of the page. `summary` is a new
+optional field carrying prose.
+
+Two constraints from ADR-1 survive that expansion unchanged, and are easy to
+break by accident:
 
 - **No links, on any item — including this repository.** Linking was considered
   and explicitly declined at Application Design Q6, because it would cross the
@@ -23,8 +38,18 @@ accident:
   zero anchors, so the decision is guarded rather than merely documented.
 - **No card grid.** The tagged-grid presentation was Option A in ADR-1 and was
   rejected: it implies each item has a linkable destination, which is not true
-  yet.
+  yet. `items` therefore stays a single text node with no element children —
+  also asserted.
 
-On mobile this section appears above Experience; on tablet and desktop it sits
-in the right-hand column. That ordering is locked upstream, not a layout
-preference — see the note in `src/app/page.tsx`.
+## A note on Vynkor
+
+`requirements.md` Q2 confirmed that Vynkor should stay "as vague as possible",
+deliberately so a reader does not conclude it competes with a full-time role.
+That constraint was written for the **Experience** section, where the Vynkor
+sub-line under Point & Pay is still one short line and still vague.
+
+Naming Vynkor's actual subject matter here is a knowing change to how much is
+disclosed, made by the site's owner. The two treatments are now deliberately
+different: brief inside the employment history, substantive in the section
+about independent engineering work. Anyone revisiting Q2 should read it as
+scoped to the Experience sub-line rather than to the whole site.

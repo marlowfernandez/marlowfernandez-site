@@ -156,11 +156,24 @@ export function ExperienceSection({
                 in a stacked layout just eats the viewport.
               */}
               <div className="desktop:sticky desktop:top-2xl">
-                <p className="text-label font-extrabold text-accent-section uppercase">
-                  <span aria-hidden="true">
+                {/*
+                  Eyebrow: ordinal, a fixed label, then the tenure. The ordinal
+                  and label are decorative scene furniture — hidden from
+                  assistive technology, which gets the employer and dates from
+                  the heading and the tenure below.
+                */}
+                <p className="flex flex-wrap items-center gap-xs text-label font-extrabold uppercase">
+                  <span aria-hidden="true" className="text-accent-section">
                     {String(index + 1).padStart(2, '0')}
-                  </span>{' '}
-                  <span data-testid="role-tenure">
+                  </span>
+                  <span aria-hidden="true" className="text-text-tertiary">
+                    Experience node
+                  </span>
+                  <span aria-hidden="true" className="h-px w-lg bg-hairline" />
+                  <span
+                    data-testid="role-tenure"
+                    className="text-accent-section"
+                  >
                     {formatTenure(role.startDate, role.endDate)}
                   </span>
                 </p>
@@ -218,6 +231,21 @@ export function ExperienceSection({
 
               {/* Column two — what was achieved. */}
               <div className="panel panel-lit p-sm">
+                {/*
+                  Card topline. Decorative furniture from the reference: it
+                  labels the card's purpose and stamps it with the scene
+                  ordinal. Hidden from assistive technology — a screen reader
+                  already has the employer heading and the bullet list, and
+                  "MF / 01" would be noise.
+                */}
+                <p
+                  aria-hidden="true"
+                  className="mb-sm flex items-center justify-between text-label font-extrabold text-text-tertiary uppercase"
+                >
+                  <span>Selected impact</span>
+                  <span>MF / {String(index + 1).padStart(2, '0')}</span>
+                </p>
+
                 {role.metric === undefined ||
                 role.metricLabel === undefined ? null : (
                   <p

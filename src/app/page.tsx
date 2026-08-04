@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { RevealController } from '@/components/RevealController';
+import { SceneNav } from '@/components/SceneNav';
 import { aiEngineering, contact, education, experience, hero } from '@/content';
 
 /**
@@ -60,6 +61,9 @@ export default function HomePage() {
           <AIEngineeringSection
             heading={aiEngineering.heading}
             items={aiEngineering.items}
+            {...(aiEngineering.summary === undefined
+              ? {}
+              : { summary: aiEngineering.summary })}
             className="py-xl"
           />
 
@@ -93,6 +97,13 @@ export default function HomePage() {
         attribute alone.
       */}
       <RevealController />
+
+      {/*
+        Scene rail, counter, and progress bar. Derived from the `[data-snap]`
+        elements rather than a manifest, so adding an employer cannot leave the
+        rail showing one dot too few. Renders nothing until it finds them.
+      */}
+      <SceneNav />
 
       <Footer />
     </>

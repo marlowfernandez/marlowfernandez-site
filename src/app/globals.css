@@ -433,13 +433,72 @@
   .canvas {
     position: relative;
     isolation: isolate;
+    /*
+     * Three overlapping radial washes rather than one. A single gradient reads
+     * as a vignette; several at different scales and positions read as depth,
+     * which is what makes this look like a lit surface rather than a flat
+     * fill. No image file is involved — this is the "background image" effect
+     * done in CSS, which costs nothing against the performance budget and
+     * recolours itself for light and dark from the same tokens.
+     */
     background:
       radial-gradient(
-        circle at 85% 8%,
+        ellipse 80% 50% at 85% 4%,
         var(--token-canvas-glow) 0,
-        transparent 34%
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 5% 30%,
+        var(--token-canvas-glow) 0,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 70% 45% at 60% 100%,
+        var(--token-canvas-glow) 0,
+        transparent 60%
       ),
       var(--token-background);
+  }
+
+  /*
+   * A blurred colour source. Multi-stop with an off-centre focal point, which
+   * is what makes it read as a light rather than a smudge — a solid circle
+   * with a large blur radius does not.
+   */
+  .orb {
+    position: absolute;
+    z-index: -2;
+    border-radius: 50%;
+    pointer-events: none;
+    aspect-ratio: 1;
+    background: radial-gradient(
+      circle at 35% 30%,
+      color-mix(in srgb, var(--accent, var(--token-accent)) 34%, transparent),
+      color-mix(in srgb, var(--accent, var(--token-accent)) 12%, transparent)
+        34%,
+      transparent 68%
+    );
+  }
+
+  /*
+   * Drift, gated twice. An infinite compositor animation on an element this
+   * large is a permanent GPU wake, so it stays off for reduced-motion and off
+   * on narrow screens where the battery cost is least welcome.
+   */
+  @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+    .orb-drift {
+      animation: orb-float 11s ease-in-out infinite;
+    }
+  }
+
+  @keyframes orb-float {
+    /*
+     * One keyframe on purpose: the browser interpolates back to the implicit
+     * start, giving a ping-pong without declaring both ends.
+     */
+    50% {
+      transform: translate3d(-18px, 24px, 0) scale(1.04);
+    }
   }
 
   .canvas::before {
@@ -631,20 +690,35 @@
      * ceiling, and this keeps the two concerns separate.
      */
     max-width: 72ch;
-    padding-inline-start: var(--spacing-sm);
+    padding-inline-start: var(--spacing-md);
     position: relative;
     color: var(--token-text-primary);
   }
 
-  /* Marker drawn by hand: `list-style` cannot be positioned per column. */
+  /*
+   * Numbered gutter rather than a bullet glyph. `counter-increment` on the
+   * item plus `content: counter()` gives a real running number that survives
+   * the column flow — `list-style` cannot be positioned per column, and a
+   * hand-written index in the markup would drift from the DOM order.
+   */
+  .slider-pages {
+    counter-reset: bullet;
+  }
+
+  .slider-bullet {
+    counter-increment: bullet;
+  }
+
   .slider-bullet::before {
-    content: '';
+    content: counter(bullet, decimal-leading-zero);
     position: absolute;
     inset-inline-start: 0;
-    top: 0.7em;
-    width: 5px;
-    height: 1px;
-    background-color: var(--accent, var(--token-accent));
+    top: 0.25em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--accent, var(--token-accent));
   }
 
   .slider-controls {
@@ -749,6 +823,73 @@
   }
 
   /*
+   * Scene rail. The label is revealed on hover and on keyboard focus — the
+   * `:focus-visible` half is not optional, or the rail would be usable by
+   * mouse and opaque by keyboard.
+   */
+  .scene-nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-xs);
+    /* 44px target; only the dot is small. */
+    min-height: 2.75rem;
+    padding-inline: var(--spacing-xs);
+    cursor: pointer;
+    background: none;
+    border: 0;
+  }
+
+  .scene-nav-label {
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--token-text-tertiary);
+    opacity: 0;
+    translate: -5px 0;
+    transition:
+      opacity 0.2s ease,
+      translate 0.2s ease;
+    /* Long employer names would otherwise push the rail across the page. */
+    max-width: 12ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-nav-button:hover .scene-nav-label,
+  .scene-nav-button:focus-visible .scene-nav-label,
+  .scene-nav-button[data-active='true'] .scene-nav-label {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .scene-nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--token-text-tertiary);
+    transition:
+      transform 0.25s ease,
+      background-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .scene-nav-button[data-active='true'] .scene-nav-dot {
+    transform: scale(1.7);
+    background-color: var(--accent, var(--token-accent));
+    box-shadow: 0 0 14px var(--accent, var(--token-accent));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene-nav-label,
+    .scene-nav-dot {
+      transition: none;
+    }
+  }
+
+  /*
    * -------------------------------------------------------------------------
    * Scene snapping
    * -------------------------------------------------------------------------
@@ -767,15 +908,21 @@
    *   - `(min-height: 760px)` keeps it off short windows, where a viewport-tall
    *     scene cannot hold its own content and snapping fights the reader.
    *
-   * `proximity`, not `mandatory`. Mandatory forces a landing on the nearest
-   * snap point even when the reader deliberately stopped between two — on a
-   * scene taller than its viewport that reads as the page yanking itself
-   * around. Proximity snaps when you are already close, which is exactly the
-   * "one scroll, next company" behaviour, and stays out of the way otherwise.
+   * `mandatory`, so a gesture always lands on a scene rather than parking
+   * between two. Proximity was tried first and read as indecisive — it only
+   * engages once you are already close, which still meant several gestures per
+   * company.
+   *
+   * Mandatory is normally the dangerous choice, because a scene taller than
+   * the viewport becomes unreachable in its lower half. That does not apply
+   * here, and only because of the two gates below plus one measured fact:
+   * every scene is exactly `100svh`, with the bullet slider paginating rather
+   * than growing. Verified at 1280x900 — eight scenes, none overflowing. If a
+   * future scene can outgrow its viewport, this must go back to `proximity`.
    */
   @media (min-height: 760px) and (pointer: fine) {
     html {
-      scroll-snap-type: y proximity;
+      scroll-snap-type: y mandatory;
     }
 
     [data-snap] {

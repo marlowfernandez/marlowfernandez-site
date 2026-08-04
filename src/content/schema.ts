@@ -151,6 +151,16 @@ export interface ExperienceFrontmatter {
 export interface AIEngineeringFrontmatter {
   section: 'ai-engineering';
   heading: string;
+  /**
+   * Optional lead paragraph, added at the redesign because the section was a
+   * single comma-separated line and read as bare.
+   *
+   * Prose, not structure. ADR-1 rejected turning this section into a chip grid
+   * or a linked list, and that still holds — `items` below stays one plain
+   * text node with no element children, which its test asserts. A paragraph
+   * beside it adds substance without reopening that decision.
+   */
+  summary?: string;
   items: AIEngineeringItem[];
 }
 
@@ -637,6 +647,10 @@ export function validateAIEngineeringFrontmatter(
     ),
     heading: checker.string(fm, 'heading', 'frontmatter.heading'),
     items: checker.stringArray(fm, 'items', 'frontmatter.items'),
+    ...maybe(
+      'summary',
+      checker.optionalString(fm, 'summary', 'frontmatter.summary'),
+    ),
   });
 }
 

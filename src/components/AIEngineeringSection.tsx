@@ -27,6 +27,8 @@ import type { AIEngineeringItem } from '@/content/schema';
 export interface AIEngineeringSectionProps {
   heading: string;
   items: AIEngineeringItem[];
+  /** Optional lead paragraph. Prose only — see the ADR-1 note above. */
+  summary?: string;
   className?: string;
 }
 
@@ -37,6 +39,7 @@ export function AIEngineeringSection({
   heading,
   items,
   className,
+  summary,
 }: AIEngineeringSectionProps) {
   return (
     <section
@@ -64,9 +67,18 @@ export function AIEngineeringSection({
         with type, never by wrapping items in elements — `ai-engineering-items`
         is asserted to have zero element children.
       */}
+      {summary === undefined ? null : (
+        <p
+          data-testid="ai-engineering-summary"
+          className="mt-sm max-w-[54ch] text-lede text-text-primary"
+        >
+          {summary}
+        </p>
+      )}
+
       <p
         data-testid="ai-engineering-items"
-        className="mt-sm text-lede text-text-primary"
+        className="mt-md max-w-[70ch] text-body text-text-secondary"
       >
         {items.join(ITEM_SEPARATOR)}
       </p>

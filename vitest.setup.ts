@@ -24,6 +24,28 @@ if (!('ResizeObserver' in globalThis)) {
   } as unknown as typeof ResizeObserver;
 }
 
+/**
+ * Same story for `IntersectionObserver`, which jsdom also lacks. `SceneNav`
+ * and `RevealController` both construct one.
+ *
+ * Also inert. A firing stub would have to invent intersection ratios, and
+ * every scroll-position assertion built on invented ratios would be a test of
+ * the stub rather than of the component.
+ */
+if (!('IntersectionObserver' in globalThis)) {
+  globalThis.IntersectionObserver = class {
+    readonly root = null;
+    readonly rootMargin = '';
+    readonly thresholds: readonly number[] = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  } as unknown as typeof IntersectionObserver;
+}
+
 afterEach(() => {
   cleanup();
   // The theme attribute lives on <html>, which React Testing Library's cleanup
