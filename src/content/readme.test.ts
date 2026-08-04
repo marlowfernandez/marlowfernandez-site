@@ -79,15 +79,35 @@ function trackedFiles(): string[] {
  */
 function ignoredPaths(candidates: string[]): Set<string> {
   if (candidates.length === 0) return new Set();
+
+  /*
+   * Each candidate is asked about twice, bare and with a trailing slash.
+   *
+   * `.gitignore` patterns that end in `/` — `/out/`, `/.next/`, `/coverage/` —
+   * match directories only, and git decides directory-ness for a
+   * non-existent path from the string it is given. Asking about bare `out`
+   * therefore returns "not ignored" whenever `out/` has not been built yet.
+   *
+   * That is exactly the CI case: tests run before the build, so the directory
+   * is absent there and present on any machine that has run `npm run build`.
+   * The check passed locally and failed in CI for the second time on that
+   * difference alone.
+   */
+  const probes = candidates.flatMap((candidate) => [
+    candidate,
+    `${candidate}/`,
+  ]);
+
   const result = spawnSync('git', ['check-ignore', '--stdin'], {
     cwd: ROOT,
     encoding: 'utf8',
-    input: candidates.join('\n'),
+    input: probes.join('\n'),
   });
+
   return new Set(
     (result.stdout ?? '')
       .split('\n')
-      .map((line) => line.trim())
+      .map((line) => line.trim().replace(/\/$/, ''))
       .filter((line) => line.length > 0),
   );
 }
