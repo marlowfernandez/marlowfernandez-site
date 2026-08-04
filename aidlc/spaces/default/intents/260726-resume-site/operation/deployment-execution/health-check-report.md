@@ -68,9 +68,11 @@ None of these block anything. All are decided rather than discovered.
 | **No real-browser no-JS check** | Accepted (ci-pipeline Q3). The Node-level cascade guard covers the bug class and is falsification-verified |
 | **`aria-pressed` inaccurate without JS** | Accepted at Unit 1's gate |
 | **3 high-severity advisories** | Unfixable inside `next@16.2.12`; audit reports, never auto-remediates |
-| **Nobody has visually reviewed the page** | **Still open.** Carried from `build-and-test-summary.md` item 7 through every subsequent stage. Verification has been geometry, contrast, and Lighthouse — never a human looking at it |
+| ~~Nobody has visually reviewed the page~~ | **CLOSED 2026-08-04.** The site owner opened the live site and confirmed it renders correctly. Open since `build-and-test-summary.md` item 7 and carried through every subsequent stage |
 
-That last row is the one worth acting on. Every automated signal is green, and no automated signal can tell you whether the typography reads well or whether Point & Pay's 15-bullet block visually overwhelms the one-line AI Engineering column. **The site is live; open it.**
+That row was the last genuinely open item in the workflow, and the only one no automated signal could close. Verification had been measured geometry, computed contrast, and Lighthouse scores — none of which can judge typographic rhythm or whether Point & Pay's 15-bullet block visually overwhelms the one-line AI Engineering column. **Confirmed by human review of the live site on 2026-08-04.**
+
+The concurrent favicon task also completed; `src/app/icon.svg` is live and took Best Practices from 96 to 100.
 
 ## Assumptions & Open Questions
 
