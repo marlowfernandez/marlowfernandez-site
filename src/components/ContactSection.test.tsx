@@ -36,7 +36,10 @@ describe('ContactSection — rendering', () => {
     // The shipped state: `contact.mdx` no longer sets a phone number, and the
     // schema makes it optional. Nothing should render, and nothing should
     // render an empty tile in its place.
-    const { phone: _omitted, ...withoutPhone } = fixture;
+    const withoutPhone: ContactInfo = {
+      email: fixture.email,
+      linkedInUrl: fixture.linkedInUrl,
+    };
     render(<ContactSection heading="Say hello" contactInfo={withoutPhone} />);
 
     expect(screen.queryByTestId('contact-phone')).toBeNull();

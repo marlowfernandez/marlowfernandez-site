@@ -21,6 +21,24 @@ name: CI
 on:
   push:
     branches: [main]
+    # Paths that cannot change the built site, so a commit touching only these
+    # should not rebuild and redeploy it.
+    #
+    # `aidlc/` is the workflow record — its audit shard is appended on every
+    # tool call and human turn, so it changes constantly and by itself would
+    # redeploy a byte-identical site. `.claude/` is the harness shell. Both are
+    # already excluded from ESLint and Prettier for the same reason: they are
+    # not application code.
+    #
+    # Deliberately narrow. Anything omitted here still triggers a full run, so
+    # the failure mode of getting this wrong is a wasted build rather than a
+    # skipped deploy — and a skipped deploy is the one that would matter.
+    #
+    # Note: if a push touches BOTH an ignored path and a real one, the workflow
+    # runs. This only skips pushes that are entirely record-keeping.
+    paths-ignore:
+      - 'aidlc/**'
+      - '.claude/**'
   workflow_dispatch:
 
 # Least privilege by default; the deploy job widens this for itself only.

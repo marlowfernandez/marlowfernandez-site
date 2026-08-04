@@ -18,6 +18,12 @@ const eslintConfig = defineConfig([
     // Not application code: the AI-DLC workspace shell and its records.
     '.claude/**',
     'aidlc/**',
+    // The same framework's ports for other agent runtimes. Gitignored and
+    // already excluded from Prettier; linting upstream code this project does
+    // not own only produces warnings nobody here can action.
+    '.agents/**',
+    '.codex/**',
+    'AGENTS.md',
   ]),
 ]);
 
