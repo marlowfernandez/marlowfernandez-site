@@ -48,7 +48,7 @@ export function AIEngineeringSection({
     >
       <h2
         id="ai-engineering-heading"
-        className="text-h2 font-semibold text-text-primary"
+        className="text-label font-extrabold text-text-tertiary uppercase"
       >
         {heading}
       </h2>
@@ -57,10 +57,15 @@ export function AIEngineeringSection({
         One text node, not a list and not a grid. `items.join` rather than a
         mapped fragment per item keeps it literally plain text — there is no
         per-item element for a future edit to hang a link or a chip on.
+
+        This is ADR-1, and it constrains the redesign rather than the other way
+        round: the reference's chip grid was the rejected option. Scale it up
+        with type, never by wrapping items in elements — `ai-engineering-items`
+        is asserted to have zero element children.
       */}
       <p
         data-testid="ai-engineering-items"
-        className="mt-sm text-body text-text-primary"
+        className="mt-sm text-lede text-text-primary"
       >
         {items.join(ITEM_SEPARATOR)}
       </p>

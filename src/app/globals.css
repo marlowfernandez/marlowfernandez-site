@@ -551,6 +551,20 @@
   }
 
   /*
+   * The availability marker beside the hero eyebrow. A colored glow rather
+   * than a black shadow — the reference's signature move, and the reason small
+   * accents read as lit rather than stuck on.
+   */
+  .availability-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--token-accent-lime);
+    box-shadow: 0 0 18px var(--token-accent-lime);
+  }
+
+  /*
    * -------------------------------------------------------------------------
    * Bullet slider
    * -------------------------------------------------------------------------

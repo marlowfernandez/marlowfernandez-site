@@ -32,7 +32,14 @@ export interface ContactSectionProps {
   className?: string;
 }
 
-const ITEM_CLASS = 'inline-flex min-h-11 items-center';
+/**
+ * Shared by all three contact items.
+ *
+ * `min-h-11` is the 44px touch target and is asserted — keep it. The rest is
+ * the redesign's tile treatment; adding to this string is safe, removing
+ * `min-h-11` is not.
+ */
+const ITEM_CLASS = 'lift inline-flex min-h-11 items-center px-sm';
 
 export function ContactSection({
   heading,
@@ -49,7 +56,7 @@ export function ContactSection({
     >
       <h2
         id="contact-heading"
-        className="text-h2 font-semibold text-text-primary"
+        className="text-label font-extrabold text-text-tertiary uppercase"
       >
         {heading}
       </h2>

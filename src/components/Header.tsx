@@ -26,14 +26,23 @@ export function Header({ name, contactInfo }: HeaderProps) {
   return (
     <header
       data-testid="site-header"
-      className="border-b border-border bg-surface"
+      /*
+       * Sticky and glass. `z-50` keeps it above the scene glows, which sit at
+       * negative z-index inside their own stacking contexts but would still
+       * paint over a static header once a scene scrolls past.
+       */
+      className="glass sticky top-0 z-50 border-b border-hairline"
     >
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-sm gap-y-xs px-sm py-sm">
+      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-sm gap-y-xs px-gutter py-xs">
         <span
-          className="text-h2 font-semibold text-text-primary"
+          className="text-body font-extrabold tracking-tight text-text-primary"
           data-testid="header-name"
         >
           {name}
+          {/* Decorative full stop in the accent, per the reference's monogram. */}
+          <span aria-hidden="true" className="text-accent-section">
+            .
+          </span>
         </span>
 
         <div className="flex flex-wrap items-center gap-x-sm gap-y-xs">

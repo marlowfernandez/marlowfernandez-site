@@ -32,7 +32,7 @@ export function EducationSection({
     >
       <h2
         id="education-heading"
-        className="text-h2 font-semibold text-text-primary"
+        className="text-label font-extrabold text-text-tertiary uppercase"
       >
         {heading}
       </h2>

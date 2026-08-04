@@ -108,7 +108,7 @@ export function ExperienceSection({
     >
       <h2
         id="experience-heading"
-        className="text-h2 font-semibold text-text-primary"
+        className="text-label font-extrabold text-text-tertiary uppercase"
       >
         {heading}
       </h2>

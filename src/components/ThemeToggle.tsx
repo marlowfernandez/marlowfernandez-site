@@ -11,7 +11,12 @@ import {
 } from '@/lib/theme-store';
 
 /**
- * Light/dark switch — the only client component on this site.
+ * Light/dark switch.
+ *
+ * Was the only client component on this site; the cinematic redesign added two
+ * more (`BulletSlider`, `RevealController`). Corrected here rather than left
+ * standing, because a confidently-worded false invariant is worse than none —
+ * the next person to read it would take "only" as a constraint to preserve.
  *
  * Every other component is a pure server component (`components.md`), which is
  * what keeps the client bundle small enough for the Performance >=90 budget.
